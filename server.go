@@ -28,12 +28,12 @@ func main() {
 
 // Helper method to insert into the middle of a slice.
 func insert(a []string, index int, value string) []string {
-  if len(a) == index { // nil or empty slice or after last element
-      return append(a, value)
-  }
-  a = append(a[:index+1], a[index:]...) // index < len(a)
-  a[index] = value
-  return a
+	if len(a) == index { // nil or empty slice or after last element
+		return append(a, value)
+	}
+	a = append(a[:index+1], a[index:]...) // index < len(a)
+	a[index] = value
+	return a
 }
 
 func Query(n *html.Node, query string) *html.Node {
@@ -114,16 +114,16 @@ func swiss(liquipediaUrl string) string {
 		return acronym
 	}
 
-  // Iterate each swiss table.
+	// Iterate each swiss table.
 	var tables []string
 	for _, swiss_table := range QueryAll(doc, "table.swisstable") {
 		var rows []string
 		rows = append(rows, "|**#**|**Teams**|**W-L**|**Round 1**|**Round 2**|**Round 3**|**Round 4**|**Round 5**|")
 		rows = append(rows, "|:-|:-|:-|:-|:-|:-|:-|:-|")
 
-    // Iterate each row.
+		// Iterate each row.
 		for i, t := range QueryAll(swiss_table, "tr") {
-      // First row is just headers.
+			// First row is just headers.
 			if i == 0 {
 				continue
 			}
@@ -131,7 +131,7 @@ func swiss(liquipediaUrl string) string {
 			var row []string
 			row = append(row, strings.Replace(Query(t, "th").FirstChild.Data, ".", " ", -1))
 
-      // Get the team name and link for each row.
+			// Get the team name and link for each row.
 			teamName := nameToAcronym(Query(t, "span.team-template-text").FirstChild.FirstChild.Data)
 			teamLink := Query(t, "span.team-template-text a")
 
@@ -143,7 +143,7 @@ func swiss(liquipediaUrl string) string {
 				href = strings.Replace(href, "(", "\\(", -1)
 				href = strings.Replace(href, ")", "\\)", -1)
 
-        // Deal with relative links on liqui.
+				// Deal with relative links on liqui.
 				if !strings.Contains(href, "https://liquipedia.net") {
 					href = "https://liquipedia.net" + href
 				}
@@ -151,40 +151,40 @@ func swiss(liquipediaUrl string) string {
 				teamMarkdown = "[**" + teamName + "**](" + href + ")"
 			}
 
-      // Go through each match (column) for the current team (row).
+			// Go through each match (column) for the current team (row).
 			row = append(row, teamMarkdown)
 			row = append(row, "**"+Query(t, "b").FirstChild.Data+"**")
 			for _, td := range QueryAll(t, "td[class^=\"swisstable-bgc\"]") {
-        // Create a scoreline, such as "✔️ 3-0 DIG"
+				// Create a scoreline, such as "✔️ 3-0 DIG"
 
-        // Get check or x-out indicator.
+				// Get check or x-out indicator.
 				match := indicator[AttrOr(td, "class", "#")]
 
-        // Get scoreline.
-        spans := QueryAll(td, "span")
-        score := spans[len(spans)-1].FirstChild.Data
-        if score != "img"{
-          match += " " + strings.Replace(score, ":", "-", -1)
-        }
+				// Get scoreline.
+				spans := QueryAll(td, "span")
+				score := spans[len(spans)-1].FirstChild.Data
+				if score != "img" {
+					match += " " + strings.Replace(score, ":", "-", -1)
+				}
 
-        // Get opposing team.
+				// Get opposing team.
 				otherTeam := Query(td, "span[class^=\"team-template\"] a")
 				if otherTeam != nil {
 					match += " " + nameToAcronym(AttrOr(otherTeam, "title", ""))
 				}
 				row = append(row, match)
 			}
-      // Combine all scorelines using reddit markdown.
+			// Combine all scorelines using reddit markdown.
 			rows = append(rows, strings.Join(row, "|"))
 		}
-    // Combine all rows to make the swiss table.
+		// Combine all rows to make the swiss table.
 		rows = insert(rows, int(len(rows)/2)+1, "|-|- - - - -|- - -||||||")
 		tables = append(tables, strings.Join(rows, "\n"))
 	}
 
-  // Encode into base64 so that the markdown can travel safely back to reddit.
-  finalMarkdown := strings.Join(tables, "\n")
-  fmt.Println(finalMarkdown)
+	// Encode into base64 so that the markdown can travel safely back to reddit.
+	finalMarkdown := strings.Join(tables, "\n")
+	fmt.Println(finalMarkdown)
 	base64Encoded := base64.StdEncoding.EncodeToString([]byte(finalMarkdown))
 	return base64Encoded
 }
