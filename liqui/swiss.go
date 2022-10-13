@@ -1,7 +1,6 @@
 package liqui
 
 import (
-	"encoding/base64"
 	"regexp"
 	"strings"
 )
@@ -117,6 +116,5 @@ func Swiss(liquipediaUrl string) string {
 
 	// Encode into base64 so that the markdown can travel safely back to reddit.
 	finalMarkdown := strings.Join(tables, "\n")
-	base64Encoded := base64.StdEncoding.EncodeToString([]byte(finalMarkdown))
-	return base64Encoded
+	return StringToBase64(finalMarkdown)
 }
