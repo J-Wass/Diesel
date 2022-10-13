@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +20,6 @@ func main() {
 	})
 
 	r.GET("/streams/:url", func(c *gin.Context) {
-		fmt.Println("loading /streams")
 		base64Url := c.Param("url")
 		decodedUrl, _ := base64.StdEncoding.DecodeString(base64Url)
 		markdown := liqui.Streams(string(decodedUrl))
