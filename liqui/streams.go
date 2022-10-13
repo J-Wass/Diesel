@@ -42,14 +42,23 @@ func Streams(liquipediaUrl string) string {
 		}
 		
 	}
-	for len(formattedStreams) > 0{
+	moreStreams := len(formattedStreams) > 4
+	for moreStreams{
 		fourTeams := formattedStreams[:4]
-		formattedStreams = formattedStreams[4:]
+		moreStreams = len(formattedStreams) > 4
+		if moreStreams{
+			formattedStreams = formattedStreams[4:]
+		}
 	  
 		var rowStringBuilder strings.Builder
 		for _, team := range fourTeams{
-			rowMarkdown := fmt.Sprintf("|[%s](%s)", team.name, team.link)
-			rowStringBuilder.WriteString(rowMarkdown)
+			if len(team.link)>0 && len(team.name) >0{
+				rowMarkdown := fmt.Sprintf("|[%s](%s)", team.name, team.link)
+				rowStringBuilder.WriteString(rowMarkdown)
+			}else{
+				rowStringBuilder.WriteString("|")
+			}
+			
 		}        
 		markdownStringBuilder.WriteString("\n" + rowStringBuilder.String())
 	}
