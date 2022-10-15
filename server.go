@@ -26,6 +26,10 @@ func main() {
 		c.String(http.StatusOK, markdown)
 	})
 
+	r.GET("/healthcheck", func(c *gin.Context) {
+		c.String(http.StatusOK, "Diesel is running.")
+	})
+
 	r.Run()
 }
 
