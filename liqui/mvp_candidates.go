@@ -19,31 +19,21 @@ func MVPCandidates(liquipediaUrl string, teamsAllowed int) string {
 		for _, team := range QueryAll(teamBox, "div.template-box"){
 			teamName := Query(team, "center > a").FirstChild.Data
 			for _, playerTable := range QueryAll(team, "div.teamcard-inner > table"){
-				// Skip subs.
-				tableHeader := Query(playerTable, "tbody > tr > th > abbr")
-				if tableHeader != nil && AttrOr(tableHeader, "title", "") == "Substitute"{
-					continue
-				}
-
 				// Build list of candidates for the team.
 				var candidates []string
-				for _, player := range QueryAll(playerTable, "tr:nth-child(-n+3) td > a"){
-					playerName := strings.TrimSpace(player.FirstChild.Data)
-
-					// If playerName is an invalid option, just skip.
-					var badRows = []string{"DNP","Ranking","Substitutes","Main Roster",}
-					shouldSkip := false
-					for _, ignoreName := range badRows{
-						if strings.Contains(playerName, ignoreName){
-							shouldSkip = true
-							break
-						}
+				for _, player := range QueryAll(playerTable, "tr"){
+					// Skip coaches & subs.
+					role := Query(player, "th")
+					if role == nil{
+						continue
 					}
-					if shouldSkip || playerName == ""{
+					roleText := role.FirstChild.Data
+					if roleText != "1" && roleText != "2" && roleText != "3"{
 						continue
 					}
 
 					// Add player & teamname to map.
+					playerName := Query(player, "td > a").FirstChild.Data
 					candidates = append(candidates, fmt.Sprintf("%s (%s)", playerName, teamName))
 				}
 				if _, ok := teamToPlayerMap[teamName]; !ok{
@@ -53,9 +43,22 @@ func MVPCandidates(liquipediaUrl string, teamsAllowed int) string {
 			}
 		}
 	}
-	fmt.Println(teamToPlayerMap)
 
-	var mvpCandidateStringBuilder strings.Builder
+	// Iterate prizepool, drawing in players until we cap out at `teamsAllowed`.
+	var eligibleCandidates []string
+	prizepool := Query(doc, "div.general-collapsible.prizepooltable")
 
-	return StringToBase64(mvpCandidateStringBuilder.String())
+	rows := QueryAll(prizepool,  "div.csstable-widget-row span.name")
+	for i, prizepoolRow := range rows{
+		if i >= teamsAllowed{
+			break
+		}
+		teamName := strings.TrimSpace(prizepoolRow.FirstChild.FirstChild.Data)
+		if teamName == "TBD" || teamName == ""{
+			continue
+		}
+		eligibleCandidates = append(eligibleCandidates, teamToPlayerMap[teamName]...)
+	}
+
+	return StringToBase64(strings.Join(eligibleCandidates, "\n"))
 }
