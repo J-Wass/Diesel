@@ -3,15 +3,11 @@ package liqui
 import (
 	"regexp"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
-func Swiss(liquipediaUrl string) string {
-	doc, err := RootDOMNodeForUrl(liquipediaUrl)
-
-	if err != nil{
-		return err.Error()
-	}
-
+func Swiss(liquipediaHTML *html.Node) string {
 	// The indicator that each cell in the swiss table starts with.
 	indicator := map[string]string{
 		"swisstable-bgc-win":  "✔️",
@@ -23,7 +19,7 @@ func Swiss(liquipediaUrl string) string {
 	acronymMap := map[string]string{}
 
 	// Iterate the teams and generate the acronymMap
-	for _, team := range QueryAll(doc, "div.brkts-matchlist-cell.brkts-matchlist-opponent") {
+	for _, team := range QueryAll(liquipediaHTML, "div.brkts-matchlist-cell.brkts-matchlist-opponent") {
 		teamName := AttrOr(team, "aria-label", "")
 		if teamName == "" {
 			continue
@@ -48,7 +44,7 @@ func Swiss(liquipediaUrl string) string {
 
 	// Iterate each swiss table.
 	var tables []string
-	for _, swiss_table := range QueryAll(doc, "table.swisstable") {
+	for _, swiss_table := range QueryAll(liquipediaHTML, "table.swisstable") {
 		var rows []string
 		rows = append(rows, "|**#**|**Teams**|**W-L**|**Round 1**|**Round 2**|**Round 3**|**Round 4**|**Round 5**|")
 		rows = append(rows, "|:-|:-|:-|:-|:-|:-|:-|:-|")

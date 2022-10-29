@@ -3,6 +3,8 @@ package liqui
 import (
 	"fmt"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type stream struct {
@@ -10,17 +12,11 @@ type stream struct {
     link  string
 }
 
-func Streams(liquipediaUrl string) string {
-	doc, err := RootDOMNodeForUrl(liquipediaUrl)
-
-	if err != nil{
-		return err.Error()
-	}
-
+func Streams(liquipediaHTML *html.Node) string {
 	var markdownStringBuilder strings.Builder
 	markdownStringBuilder.WriteString("|||||\n|:-|:-|:-|:-|")
 	formattedStreams := make([]stream, 0)
-	streamTables := QueryAll(doc, "table.sortable.wikitable")
+	streamTables := QueryAll(liquipediaHTML, "table.sortable.wikitable")
 
 	for _, table := range streamTables {
 		rows := QueryAll(Query(table, "tbody"), "tr")
