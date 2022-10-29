@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"math"
 	"net/http"
 	"strconv"
@@ -9,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	liqui "diesel/liqui"
+	utils "diesel/utils"
 )
 
 func main() {
@@ -16,43 +16,55 @@ func main() {
 
 	r.GET("/swiss/:url", func(c *gin.Context) {
 		base64Url := c.Param("url")
-		decodedUrl, _ := base64.StdEncoding.DecodeString(base64Url)
-		rootNode, _ := liqui.RootDOMNodeForUrl(string(decodedUrl))
-		markdown := liqui.Swiss(rootNode)
-		c.String(http.StatusOK, markdown)
+		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
+		markdown :=  liqui.Swiss(rootNode)
+		encodedMarkdown :=  utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
 	})
 
 	r.GET("/streams/:url", func(c *gin.Context) {
 		base64Url := c.Param("url")
-		decodedUrl, _ := base64.StdEncoding.DecodeString(base64Url)
-		rootNode, _ := liqui.RootDOMNodeForUrl(string(decodedUrl))
+		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
 		markdown := liqui.Streams(rootNode)
-		c.String(http.StatusOK, markdown)
+		encodedMarkdown :=  utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
+	r.GET("/coverage/:url", func(c *gin.Context) {
+		base64Url := c.Param("url")
+		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
+		markdown :=  liqui.Coverage(rootNode)
+		encodedMarkdown :=  utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
 	})
 
 	r.GET("/makethread/:url/template/:template", func(c *gin.Context) {
 		base64Url := c.Param("url")
-		decodedUrl, _ := base64.StdEncoding.DecodeString(base64Url)
-		rootNode, _ := liqui.RootDOMNodeForUrl(string(decodedUrl))
+		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
 
 		base64Template := c.Param("template")
-		decodedTemplate, _ := base64.StdEncoding.DecodeString(base64Template)
+		decodedTemplate, _ :=  utils.DecodedFromBase64(base64Template)
 
-		markdown := liqui.MakeThread(rootNode, string(decodedTemplate))
-		c.String(http.StatusOK, markdown)
+		markdown :=  liqui.MakeThread(rootNode, string(decodedTemplate))
+		encodedMarkdown :=  utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
 	})
 
 	r.GET("/healthcheck", func(c *gin.Context) {
-		if liqui.CacheWrites == 0 || liqui.CacheLookups == 0{
+		if utils.CacheWrites == 0 || utils.CacheLookups == 0{
 			c.JSON(200, gin.H{
-				"cache size": len(liqui.DOMCache),
+				"cache size": len(utils.DOMCache),
 			})
 		}else{
-			hitRate := float64(liqui.CacheHits)/float64(liqui.CacheLookups)
-			thrashRate := float64(liqui.CacheThrashes)/float64(liqui.CacheLookups)
-			readWriteRate := float64(liqui.CacheLookups)/float64(liqui.CacheWrites)
+			hitRate := float64(utils.CacheHits)/float64(utils.CacheLookups)
+			thrashRate := float64(utils.CacheThrashes)/float64(utils.CacheLookups)
+			readWriteRate := float64(utils.CacheLookups)/float64(utils.CacheWrites)
 			c.JSON(200, gin.H{
-				"cache size": len(liqui.DOMCache),
+				"cache size": len(utils.DOMCache),
 				"cache hit rate": math.Round(hitRate*100)/100,
 				"cache thrash rate": math.Round(thrashRate*100)/100,
 				"cache read/write rate": math.Round(readWriteRate*100)/100,
@@ -62,11 +74,12 @@ func main() {
 
 	r.GET("/mvp_candidates/:url/teams_allowed/:teams_allowed", func(c *gin.Context) {
 		base64Url := c.Param("url")
-		decodedUrl, _ := base64.StdEncoding.DecodeString(base64Url)
+		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
 		teamsAllowed, _ := strconv.Atoi(c.Param("teams_allowed"))
-		rootNode, _ := liqui.RootDOMNodeForUrl(string(decodedUrl))
-		candidates := liqui.MVPCandidates(rootNode, teamsAllowed)
-		c.String(http.StatusOK, candidates)
+		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
+		markdown :=  liqui.MVPCandidates(rootNode, teamsAllowed)
+		encodedMarkdown :=  utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
 	})
 
 	r.Run()

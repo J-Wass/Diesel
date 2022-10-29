@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	utils "diesel/utils"
+
 	"golang.org/x/net/html"
 )
 
@@ -11,15 +13,15 @@ import (
 func MVPCandidates(liquipediaHTML *html.Node, teamsAllowed int) string {
 	// Mapping from teamName -> list of players
 	teamToPlayerMap := map[string][]string{}
-	for _, teamBox := range QueryAll(liquipediaHTML, "div[class^=teamcard-columns]"){
-		for _, team := range QueryAll(teamBox, "div.template-box"){
-			teamName := Query(team, "center > a").FirstChild.Data
-			for _, playerTable := range QueryAll(team, "div.teamcard-inner > table"){
+	for _, teamBox := range utils.QueryAll(liquipediaHTML, "div[class^=teamcard-columns]"){
+		for _, team := range utils.QueryAll(teamBox, "div.template-box"){
+			teamName := utils.Query(team, "center > a").FirstChild.Data
+			for _, playerTable := range utils.QueryAll(team, "div.teamcard-inner > table"){
 				// Build list of candidates for the team.
 				var candidates []string
-				for _, player := range QueryAll(playerTable, "tr"){
+				for _, player := range utils.QueryAll(playerTable, "tr"){
 					// Skip coaches & subs.
-					role := Query(player, "th")
+					role := utils.Query(player, "th")
 					if role == nil{
 						continue
 					}
@@ -29,7 +31,7 @@ func MVPCandidates(liquipediaHTML *html.Node, teamsAllowed int) string {
 					}
 
 					// Add player & teamname to map.
-					playerName := Query(player, "td > a").FirstChild.Data
+					playerName := utils.Query(player, "td > a").FirstChild.Data
 					candidates = append(candidates, fmt.Sprintf("%s (%s)", playerName, teamName))
 				}
 				if _, ok := teamToPlayerMap[teamName]; !ok{
@@ -42,9 +44,9 @@ func MVPCandidates(liquipediaHTML *html.Node, teamsAllowed int) string {
 
 	// Iterate prizepool, drawing in players until we cap out at `teamsAllowed`.
 	var eligibleCandidates []string
-	prizepool := Query(liquipediaHTML, "div.general-collapsible.prizepooltable")
+	prizepool := utils.Query(liquipediaHTML, "div.general-collapsible.prizepooltable")
 
-	rows := QueryAll(prizepool,  "div.csstable-widget-row span.name")
+	rows := utils.QueryAll(prizepool,  "div.csstable-widget-row span.name")
 	for i, prizepoolRow := range rows{
 		if i >= teamsAllowed{
 			break
@@ -56,5 +58,5 @@ func MVPCandidates(liquipediaHTML *html.Node, teamsAllowed int) string {
 		eligibleCandidates = append(eligibleCandidates, teamToPlayerMap[teamName]...)
 	}
 
-	return StringToBase64(strings.Join(eligibleCandidates, "\n"))
+	return strings.Join(eligibleCandidates, "\n")
 }
