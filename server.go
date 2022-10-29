@@ -38,7 +38,7 @@ func main() {
 		base64Template := c.Param("template")
 		decodedTemplate, _ := base64.StdEncoding.DecodeString(base64Template)
 
-		markdown := liqui.MakeThread(rootNode, decodedTemplate)
+		markdown := liqui.MakeThread(rootNode, string(decodedTemplate))
 		c.String(http.StatusOK, markdown)
 	})
 
