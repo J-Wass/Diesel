@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"golang.org/x/net/html"
+
+	utils "diesel/utils"
 )
 
 func Swiss(liquipediaHTML *html.Node) string {
@@ -19,15 +21,15 @@ func Swiss(liquipediaHTML *html.Node) string {
 	acronymMap := map[string]string{}
 
 	// Iterate the teams and generate the acronymMap
-	for _, team := range QueryAll(liquipediaHTML, "div.brkts-matchlist-cell.brkts-matchlist-opponent") {
-		teamName := AttrOr(team, "aria-label", "")
+	for _, team := range utils.QueryAll(liquipediaHTML, "div.brkts-matchlist-cell.brkts-matchlist-opponent") {
+		teamName := utils.AttrOr(team, "aria-label", "")
 		if teamName == "" {
 			continue
 		}
 		match := regexp.MustCompile(`\s[\d]{4}`)
 		finalTeamName := strings.ToLower(match.ReplaceAllString(teamName, ""))
 
-		acronym := Query(team, "span.name").FirstChild.Data
+		acronym := utils.Query(team, "span.name").FirstChild.Data
 		acronymMap[finalTeamName] = acronym
 	}
 
@@ -44,30 +46,30 @@ func Swiss(liquipediaHTML *html.Node) string {
 
 	// Iterate each swiss table.
 	var tables []string
-	for _, swiss_table := range QueryAll(liquipediaHTML, "table.swisstable") {
+	for _, swiss_table := range utils.QueryAll(liquipediaHTML, "table.swisstable") {
 		var rows []string
 		rows = append(rows, "|**#**|**Teams**|**W-L**|**Round 1**|**Round 2**|**Round 3**|**Round 4**|**Round 5**|")
 		rows = append(rows, "|:-|:-|:-|:-|:-|:-|:-|:-|")
 
 		// Iterate each row.
-		for i, t := range QueryAll(swiss_table, "tr") {
+		for i, t := range utils.QueryAll(swiss_table, "tr") {
 			// First row is just headers.
 			if i == 0 {
 				continue
 			}
 
 			var row []string
-			row = append(row, strings.Replace(Query(t, "th").FirstChild.Data, ".", " ", -1))
+			row = append(row, strings.Replace(utils.Query(t, "th").FirstChild.Data, ".", " ", -1))
 
 			// Get the team name and link for each row.
-			teamName := nameToAcronym(Query(t, "span.team-template-text").FirstChild.FirstChild.Data)
-			teamLink := Query(t, "span.team-template-text a")
+			teamName := nameToAcronym(utils.Query(t, "span.team-template-text").FirstChild.FirstChild.Data)
+			teamLink := utils.Query(t, "span.team-template-text a")
 
 			teamMarkdown := ""
 			if teamLink == nil {
 				teamMarkdown = "**" + teamName + "**"
 			} else {
-				href := AttrOr(teamLink, "href", "#")
+				href := utils.AttrOr(teamLink, "href", "#")
 				href = strings.Replace(href, "(", "\\(", -1)
 				href = strings.Replace(href, ")", "\\)", -1)
 
@@ -81,24 +83,24 @@ func Swiss(liquipediaHTML *html.Node) string {
 
 			// Go through each match (column) for the current team (row).
 			row = append(row, teamMarkdown)
-			row = append(row, "**"+Query(t, "b").FirstChild.Data+"**")
-			for _, td := range QueryAll(t, "td[class^=\"swisstable-bgc\"]") {
+			row = append(row, "**"+utils.Query(t, "b").FirstChild.Data+"**")
+			for _, td := range utils.QueryAll(t, "td[class^=\"swisstable-bgc\"]") {
 				// Create a scoreline, such as "✔️ 3-0 DIG"
 
 				// Get check or x-out indicator.
-				match := indicator[AttrOr(td, "class", "#")]
+				match := indicator[utils.AttrOr(td, "class", "#")]
 
 				// Get scoreline.
-				spans := QueryAll(td, "span")
+				spans := utils.QueryAll(td, "span")
 				score := spans[len(spans)-1].FirstChild.Data
 				if score != "img" {
 					match += " " + strings.Replace(score, ":", "-", -1)
 				}
 
 				// Get opposing team.
-				otherTeam := Query(td, "span[class^=\"team-template\"] a")
+				otherTeam := utils.Query(td, "span[class^=\"team-template\"] a")
 				if otherTeam != nil {
-					match += " " + nameToAcronym(AttrOr(otherTeam, "title", ""))
+					match += " " + nameToAcronym(utils.AttrOr(otherTeam, "title", ""))
 				}
 				row = append(row, match)
 			}
@@ -106,11 +108,10 @@ func Swiss(liquipediaHTML *html.Node) string {
 			rows = append(rows, strings.Join(row, "|"))
 		}
 		// Combine all rows to make the swiss table.
-		rows = Insert(rows, int(len(rows)/2)+1, "|-|- - - - -|- - -||||||")
+		rows = utils.Insert(rows, int(len(rows)/2)+1, "|-|- - - - -|- - -||||||")
 		tables = append(tables, strings.Join(rows, "\n"))
 	}
 
-	// Encode into base64 so that the markdown can travel safely back to reddit.
 	finalMarkdown := strings.Join(tables, "\n")
-	return StringToBase64(finalMarkdown)
+	return finalMarkdown
 }

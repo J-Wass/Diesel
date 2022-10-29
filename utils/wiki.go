@@ -1,7 +1,6 @@
-package liqui
+package utils
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,10 +16,6 @@ var CacheHits = 0
 var CacheLookups = 0
 var CacheWrites = 0
 var CacheThrashes = 0
-
-func StringToBase64(str string) string{
-	return base64.StdEncoding.EncodeToString([]byte(str))
-}
 
 // Returns an html.Node for the supplied url. Either returns a Node or an error.
 func RootDOMNodeForUrl(url string) (*html.Node, error){

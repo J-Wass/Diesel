@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	utils "diesel/utils"
+
 	"golang.org/x/net/html"
 )
 
@@ -16,19 +18,19 @@ func Streams(liquipediaHTML *html.Node) string {
 	var markdownStringBuilder strings.Builder
 	markdownStringBuilder.WriteString("|||||\n|:-|:-|:-|:-|")
 	formattedStreams := make([]stream, 0)
-	streamTables := QueryAll(liquipediaHTML, "table.sortable.wikitable")
+	streamTables := utils.QueryAll(liquipediaHTML, "table.sortable.wikitable")
 
 	for _, table := range streamTables {
-		rows := QueryAll(Query(table, "tbody"), "tr")
+		rows := utils.QueryAll(utils.Query(table, "tbody"), "tr")
 
-		teams := QueryAll(rows[0], "td")
-		streams := QueryAll(rows[1], "td")
+		teams := utils.QueryAll(rows[0], "td")
+		streams := utils.QueryAll(rows[1], "td")
 		
 
 		// Iterate all teams, build a stream for them.
 		for i, team := range teams{
-			teamname := AttrOr(Query(team, "a"), "title", "")
-			rawStreamLink := AttrOr(Query(streams[i], "a"), "title", "https://www.twitch.tv/directory/game/Rocket%20League")
+			teamname := utils.AttrOr(utils.Query(team, "a"), "title", "")
+			rawStreamLink := utils.AttrOr(utils.Query(streams[i], "a"), "title", "https://www.twitch.tv/directory/game/Rocket%20League")
 			rawStreamLinkSplit := strings.Split(rawStreamLink, "/")
 			streamLink := "https://www.twitch.tv/" + rawStreamLinkSplit[len(rawStreamLinkSplit)-1]
 			if len(teamname) >0 && len(streamLink) >0{
@@ -59,5 +61,5 @@ func Streams(liquipediaHTML *html.Node) string {
 		markdownStringBuilder.WriteString("\n" + rowStringBuilder.String())
 	}
 
-	return StringToBase64(markdownStringBuilder.String())
+	return markdownStringBuilder.String()
 }
