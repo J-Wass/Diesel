@@ -11,6 +11,13 @@ import (
 	"golang.org/x/net/html"
 )
 
+// Contains a mapping from [string concatenation of "Last Modified" & URL] to [the *html.Node pointing to the root html node of that URL]
+var DOMCache = make(map[string]*html.Node)
+var CacheHits = 0
+var CacheLookups = 0
+var CacheWrites = 0
+var CacheThrashes = 0
+
 func StringToBase64(str string) string{
 	return base64.StdEncoding.EncodeToString([]byte(str))
 }
@@ -18,6 +25,17 @@ func StringToBase64(str string) string{
 // Returns an html.Node for the supplied url. Either returns a Node or an error.
 func RootDOMNodeForUrl(url string) (*html.Node, error){
 	res, err := http.Get(url)
+
+	// Check if date modified + url are in the cache before parsing.
+	CacheLookups++
+	lastModified := res.Header["Last-Modified"][0]
+	cacheKey := fmt.Sprintf("%s%s", lastModified, url)
+	if cachedDOMNode, ok := DOMCache[cacheKey]; ok {
+		CacheHits++
+		return cachedDOMNode, nil
+	}
+
+	// Parse http response into an html node.
 	if err != nil {
 		return nil, fmt.Errorf("couldn't fetch %s", url)
 	}
@@ -29,11 +47,21 @@ func RootDOMNodeForUrl(url string) (*html.Node, error){
 	if err != nil {
 		return nil, fmt.Errorf("couldn't read %s's response", url)
 	}
-
 	doc, _ := html.Parse(strings.NewReader(string(b)))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't parse %s's response", url)
 	}
+
+	// If cache is full, just empty and restart build.
+	if len(DOMCache) >= 3{
+		CacheThrashes++
+		DOMCache = make(map[string]*html.Node)
+	}
+
+	// Write to cache, return the parsed document.
+	CacheWrites++
+	DOMCache[cacheKey] = doc
+
 
 	return doc, nil
 }

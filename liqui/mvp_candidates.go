@@ -3,19 +3,15 @@ package liqui
 import (
 	"fmt"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 // Returns \n delimited string of all mvp candidates in the liqui url
-func MVPCandidates(liquipediaUrl string, teamsAllowed int) string {
-	doc, err := RootDOMNodeForUrl(liquipediaUrl)
-
-	if err != nil{
-		return err.Error()
-	}
-
+func MVPCandidates(liquipediaHTML *html.Node, teamsAllowed int) string {
 	// Mapping from teamName -> list of players
 	teamToPlayerMap := map[string][]string{}
-	for _, teamBox := range QueryAll(doc, "div[class^=teamcard-columns]"){
+	for _, teamBox := range QueryAll(liquipediaHTML, "div[class^=teamcard-columns]"){
 		for _, team := range QueryAll(teamBox, "div.template-box"){
 			teamName := Query(team, "center > a").FirstChild.Data
 			for _, playerTable := range QueryAll(team, "div.teamcard-inner > table"){
@@ -46,7 +42,7 @@ func MVPCandidates(liquipediaUrl string, teamsAllowed int) string {
 
 	// Iterate prizepool, drawing in players until we cap out at `teamsAllowed`.
 	var eligibleCandidates []string
-	prizepool := Query(doc, "div.general-collapsible.prizepooltable")
+	prizepool := Query(liquipediaHTML, "div.general-collapsible.prizepooltable")
 
 	rows := QueryAll(prizepool,  "div.csstable-widget-row span.name")
 	for i, prizepoolRow := range rows{
