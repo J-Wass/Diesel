@@ -30,9 +30,7 @@ func RootDOMNodeForUrl(url string) (*html.Node, error){
 	CacheLookups++
 	lastModified := res.Header["Last-Modified"][0]
 	cacheKey := fmt.Sprintf("%s%s", lastModified, url)
-	fmt.Printf("\nkey \n\n%s\n\n", cacheKey)
 	if cachedDOMNode, ok := DOMCache[cacheKey]; ok {
-		fmt.Printf("\n\nhits %d\n\n", CacheHits)
 		CacheHits++
 		return cachedDOMNode, nil
 	}
