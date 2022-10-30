@@ -18,7 +18,7 @@ func setupRouter() *gin.Engine {
 	r.GET("/swiss/:url", func(c *gin.Context) {
 		base64Url := c.Param("url")
 		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
-		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
 		markdown :=  liqui.Swiss(rootNode)
 		encodedMarkdown :=  utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
@@ -27,7 +27,7 @@ func setupRouter() *gin.Engine {
 	r.GET("/streams/:url", func(c *gin.Context) {
 		base64Url := c.Param("url")
 		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
-		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
 		markdown := liqui.Streams(rootNode)
 		encodedMarkdown :=  utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
@@ -36,8 +36,8 @@ func setupRouter() *gin.Engine {
 	r.GET("/coverage/:url", func(c *gin.Context) {
 		base64Url := c.Param("url")
 		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
-		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
-		markdown :=  liqui.Coverage(rootNode)
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
+		markdown :=  liqui.Coverage(rootNode, decodedUrl)
 		encodedMarkdown :=  utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
 	})
@@ -45,12 +45,22 @@ func setupRouter() *gin.Engine {
 	r.GET("/makethread/:url/template/:template", func(c *gin.Context) {
 		base64Url := c.Param("url")
 		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
-		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
 
 		base64Template := c.Param("template")
 		decodedTemplate, _ :=  utils.DecodedFromBase64(base64Template)
 
-		markdown :=  liqui.MakeThread(rootNode, string(decodedTemplate))
+		markdown :=  liqui.MakeThread(rootNode, decodedTemplate)
+		encodedMarkdown :=  utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
+	r.GET("/mvp_candidates/:url/teams_allowed/:teams_allowed", func(c *gin.Context) {
+		base64Url := c.Param("url")
+		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
+		teamsAllowed, _ := strconv.Atoi(c.Param("teams_allowed"))
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
+		markdown :=  liqui.MVPCandidates(rootNode, teamsAllowed)
 		encodedMarkdown :=  utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
 	})
@@ -72,16 +82,7 @@ func setupRouter() *gin.Engine {
 			})
 		}
 	})
-
-	r.GET("/mvp_candidates/:url/teams_allowed/:teams_allowed", func(c *gin.Context) {
-		base64Url := c.Param("url")
-		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
-		teamsAllowed, _ := strconv.Atoi(c.Param("teams_allowed"))
-		rootNode, _ := utils.RootDOMNodeForUrl(string(decodedUrl))
-		markdown :=  liqui.MVPCandidates(rootNode, teamsAllowed)
-		encodedMarkdown :=  utils.EncodedBase64(markdown)
-		c.String(http.StatusOK, encodedMarkdown)
-	})
+	
 	return r
 }
 
