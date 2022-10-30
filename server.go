@@ -11,7 +11,8 @@ import (
 	utils "diesel/utils"
 )
 
-func main() {
+// Sets up all routes for Diesel.
+func setupRouter() *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/swiss/:url", func(c *gin.Context) {
@@ -81,7 +82,11 @@ func main() {
 		encodedMarkdown :=  utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
 	})
+	return r
+}
 
+func main() {
+	r := setupRouter()
 	r.Run()
 }
 
