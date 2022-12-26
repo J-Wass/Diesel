@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -59,7 +58,6 @@ func setupRouter() *gin.Engine {
 		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
 		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
 		markdown :=  liqui.Groups(rootNode, decodedUrl)
-		fmt.Print(markdown)
 		encodedMarkdown :=  utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
 	})
