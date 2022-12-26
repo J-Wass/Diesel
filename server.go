@@ -53,6 +53,15 @@ func setupRouter() *gin.Engine {
 		c.String(http.StatusOK, encodedMarkdown)
 	})
 
+	r.GET("/groups/:url", func(c *gin.Context) {
+		base64Url := c.Param("url")
+		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
+		markdown :=  liqui.Groups(rootNode, decodedUrl)
+		encodedMarkdown :=  utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
 	r.GET("/makethread/:url/template/:template", func(c *gin.Context) {
 		base64Url := c.Param("url")
 		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
