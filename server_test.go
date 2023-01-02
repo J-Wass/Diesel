@@ -34,6 +34,18 @@ func TestSwiss(t *testing.T) {
     assert.Equal(t, expectedEncodedMarkup, string(responseData))
 }
 
+func TestBracket(t *testing.T) {
+	url := "https://liquipedia.net/rocketleague/Rocket_League_Championship_Series/2022-23/Fall/North_America/Cup"
+	encodedUrl := utils.EncodedBase64(url)
+	endpoint := fmt.Sprintf("/bracket/%s/day/3", encodedUrl)
+	
+    responseData := responseForEndpoint(endpoint)
+
+	expectedEncodedMarkup := "fCpFTElNSU5BVElPTip8fFsqKkxpcXVpcGVkaWEgQnJhY2tldCoqXShodHRwczovL2xpcXVpcGVkaWEubmV0L3JvY2tldGxlYWd1ZS9Sb2NrZXRfTGVhZ3VlX0NoYW1waW9uc2hpcF9TZXJpZXMvMjAyMi0yMy9GYWxsL05vcnRoX0FtZXJpY2EvQ3VwI1Jlc3VsdHMpfAp8Oi18Oi18Oi18CnwqKlZlcnNpb24xKip8Kio0IC0gMSoqfE5SR3wKfCoqR2VuLkcgTW9iaWwxIFJhY2luZyoqfCoqNCAtIDEqKnxTcGFjZXN0YXRpb258CnxHZW4uRyBNb2JpbDEgUmFjaW5nfCoqMyAtIDQqKnwqKlZlcnNpb24xKip8"
+	assert.Equal(t, http.StatusOK, 200)
+    assert.Equal(t, expectedEncodedMarkup, string(responseData))
+}
+
 func TestMVP(t *testing.T) {
 	url := "https://liquipedia.net/rocketleague/Rocket_League_Championship_Series/2022-23/Fall/North_America/Cup"
 	encodedUrl := utils.EncodedBase64(url)

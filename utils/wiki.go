@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/andybalholm/cascadia"
 	"golang.org/x/net/html"
@@ -94,4 +97,35 @@ func AttrOr(n *html.Node, attrName, or string) string {
 		}
 	}
 	return or
+}
+
+// Returns a 2d slice of time.Times. Index i is a list of all event times for day i. Starts at day 0.
+func DayBuckets(liquipediaHTML  *html.Node) [][]time.Time {
+	// Get all dates of games.
+	dateTimestamps := make([]int, 0)
+	dateObjects := QueryAll(liquipediaHTML, "span.timer-object")
+	for _, dateObject := range dateObjects {
+		newTimestamp := AttrOr(dateObject, "data-timestamp", "0")
+		timestampInt, _ := strconv.Atoi(newTimestamp)
+		dateTimestamps = append(dateTimestamps, timestampInt)
+	}
+
+	sort.Ints(dateTimestamps)
+	
+	// Group dates of each game into buckets of days.
+	dayBuckets := make([][]time.Time, 0)
+	prevTimestamp := -1
+	for _, timestamp := range dateTimestamps{
+		// Start a new day if @ beginning or new timestamp is far in future
+		if prevTimestamp == -1 || timestamp - prevTimestamp > 60 * 60 * 2{
+			dayBuckets = append(dayBuckets, make([]time.Time, 0))
+		}
+
+		// Convert timestamp to datetime, add to correct day bucket.
+		datetime := time.Unix(int64(timestamp), 0)
+		dayBuckets[len(dayBuckets)-1] = append(dayBuckets[len(dayBuckets)-1], datetime.UTC())
+		prevTimestamp = timestamp
+	}
+
+	return dayBuckets
 }
