@@ -35,6 +35,17 @@ func setupRouter() *gin.Engine {
 		c.String(http.StatusOK, encodedMarkdown)
 	})
 
+	r.GET("/bracket/:url/day/:day", func(c *gin.Context) {
+		base64Url := c.Param("url")
+		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
+		dayNumber, _ := strconv.Atoi(c.Param("day"))
+
+		markdown :=  liqui.Bracket(rootNode, decodedUrl, dayNumber)
+		encodedMarkdown :=  utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
 	r.GET("/streams/:url", func(c *gin.Context) {
 		base64Url := c.Param("url")
 		decodedUrl, _ :=  utils.DecodedFromBase64(base64Url)
