@@ -34,6 +34,18 @@ func TestSwiss(t *testing.T) {
 	assert.Equal(t, expectedEncodedMarkup, string(responseData))
 }
 
+func TestBracketWithLeadingZero(t *testing.T) {
+	url := "https://liquipedia.net/rocketleague/Rocket_League_Championship_Series/2022-23/Winter/Middle_East_and_North_Africa/Open"
+	encodedUrl := utils.EncodedBase64(url)
+	endpoint := fmt.Sprintf("/bracket/%s/day/3", encodedUrl)
+
+	responseData := responseForEndpoint(endpoint)
+
+	expectedEncodedMarkup := "fCpFTElNSU5BVElPTip8fFsqKkxpcXVpcGVkaWEgQnJhY2tldCoqXShodHRwczovL2xpcXVpcGVkaWEubmV0L3JvY2tldGxlYWd1ZS9Sb2NrZXRfTGVhZ3VlX0NoYW1waW9uc2hpcF9TZXJpZXMvMjAyMi0yMy9XaW50ZXIvTWlkZGxlX0Vhc3RfYW5kX05vcnRoX0FmcmljYS9PcGVuI1Jlc3VsdHMpfAp8Oi18Oi18Oi18CnwqKlJ1bGUgT25lKip8Kio0IC0gMCoqfFZpc2lvbiBFc3BvcnRzfAp8KipUZWFtIEZhbGNvbnMqKnwqKjQgLSAzKip8Q29sYXwKfCoqVGVhbSBGYWxjb25zKip8Kio0IC0gMCoqfFJ1bGUgT25lfA=="
+	assert.Equal(t, http.StatusOK, 200)
+	assert.Equal(t, expectedEncodedMarkup, string(responseData))
+}
+
 func TestBracket(t *testing.T) {
 	url := "https://liquipedia.net/rocketleague/Rocket_League_Championship_Series/2022-23/Fall/North_America/Cup"
 	encodedUrl := utils.EncodedBase64(url)
@@ -77,7 +89,7 @@ func TestCoverage(t *testing.T) {
 
 	responseData := responseForEndpoint(endpoint)
 
-	expectedEncodedMarkup := "IyBDb3ZlcmFnZQoKWyoqTGlxdWlwZWRpYSoqXShodHRwczovL2xpcXVpcGVkaWEubmV0L3JvY2tldGxlYWd1ZS9Sb2NrZXRfTGVhZ3VlX0NoYW1waW9uc2hpcF9TZXJpZXMvMjAyMi0yMy9GYWxsL05vcnRoX0FtZXJpY2EvQ3VwKSAqKi8gLyoqIFsqKk9jdGFuZS5nZyoqXShodHRwczovL29jdGFuZS5nZy9ldmVudHMvYzAzNS1ybGNzLTIwMjItMjMtZmFsbC1ub3J0aC1hbWVyaWNhLXJlZ2lvbmFsLTIpICoqLyAvKiogWyoqU3RhcnQuZ2cqKl0oaHR0cHM6Ly93d3cuc3RhcnQuZ2cvdG91cm5hbWVudC9ybGNzLTIwMjItMjMtZmFsbC1jdXAtbm9ydGgtYW1lcmljYS9ldmVudC9tYWluLWV2ZW50KQ=="
+	expectedEncodedMarkup := "IyBDb3ZlcmFnZQoKWyoqTGlxdWlwZWRpYSoqXShodHRwczovL2xpcXVpcGVkaWEubmV0L3JvY2tldGxlYWd1ZS9Sb2NrZXRfTGVhZ3VlX0NoYW1waW9uc2hpcF9TZXJpZXMvMjAyMi0yMy9GYWxsL05vcnRoX0FtZXJpY2EvQ3VwKSAqKi8gLyoqIFsqKlN0YXJ0LmdnKipdKGh0dHBzOi8vd3d3LnN0YXJ0LmdnL3RvdXJuYW1lbnQvcmxjcy0yMDIyLTIzLWZhbGwtY3VwLW5vcnRoLWFtZXJpY2EvZXZlbnQvbWFpbi1ldmVudCk="
 	assert.Equal(t, http.StatusOK, 200)
 	assert.Equal(t, expectedEncodedMarkup, string(responseData))
 }
