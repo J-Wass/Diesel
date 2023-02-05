@@ -36,8 +36,13 @@ func datetimeFromLiquiTimestring(timestring string, timezone string) time.Time {
 
 	// Liqui format example: March 26, 2022 - 13:15
 	dateTime, err := gostradamus.Parse(timestring+cleanedTimezone, "MMMM DD, YYYY - HH:mmzz")
+	// Possible timestring: "February 4, 2023 - 15:55+00:00"
 	if err != nil {
-		return time.Now()
+		dateTime, err = gostradamus.Parse(timestring+cleanedTimezone, "MMMM D, YYYY - HH:mmzz")
+		if err != nil {
+			return time.Now()
+		}
+
 	}
 	return time.Time(dateTime)
 }
@@ -77,15 +82,13 @@ func matchesForLiquiURL(liquipediaHTML *html.Node, dayNumber int) []match {
 		earliestDatetime := allowedDatetimes[0]
 		latestDatetime := allowedDatetimes[len(allowedDatetimes)-1]
 
-		gameStartTimeIsAllowed := false
-		if earliestDatetime.Before(latestDatetime) {
-			gameStartTimeIsAllowed = !gameStartTime.Before(earliestDatetime) && !gameStartTime.After(latestDatetime)
-		} else if earliestDatetime.Equal(latestDatetime) {
-			gameStartTimeIsAllowed = gameStartTime.Equal(gameStartTime)
+		gameStartTimeIsAllowed := gameStartTime.Equal(latestDatetime) || gameStartTime.Equal(earliestDatetime)
+		if gameStartTime.Before(latestDatetime) && gameStartTime.After(earliestDatetime) {
+			gameStartTimeIsAllowed = true
 		}
 
+		// This game is outside of the requested day, so ignore it.
 		if !gameStartTimeIsAllowed {
-			// This game is outside of the requested day, so ignore it.
 			continue
 		}
 
