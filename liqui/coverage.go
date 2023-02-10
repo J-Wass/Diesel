@@ -10,29 +10,28 @@ import (
 
 func Coverage(liquipediaHTML *html.Node, liquiURL string) string {
 	coverageItems := make([]string, 0)
-	coverageItems = append(coverageItems, fmt.Sprintf("[**Liquipedia**](%s)", liquiURL)) 
-
+	coverageItems = append(coverageItems, fmt.Sprintf("[**Liquipedia**](%s)", liquiURL))
 
 	octaneGGLink := utils.Query(liquipediaHTML, "a[href^=\"https://octane.gg/events\"]")
 	octaneGGHref := "#"
-	if octaneGGLink != nil{
+	if octaneGGLink != nil {
 		octaneGGHref = utils.AttrOr(octaneGGLink, "href", "")
-		if octaneGGHref != ""{
+		if octaneGGHref != "" {
 			coverageItems = append(coverageItems, fmt.Sprintf("[**Octane.gg**](%s)", octaneGGHref))
 		}
 	}
-	
+
 	startGGLink := utils.Query(liquipediaHTML, "a[href^=\"https://www.start.gg/tournament\"]")
 	startGGHref := "#"
-	if startGGLink != nil{
+	if startGGLink != nil {
 		startGGHref = utils.AttrOr(startGGLink, "href", "")
-		if startGGHref != ""{
+		if startGGHref != "" {
 			coverageItems = append(coverageItems, fmt.Sprintf("[**Start.gg**](%s)", startGGHref))
 		}
 	}
-	
+
 	markdown := "# Coverage\n\n"
-	
+
 	markdown += strings.Join(coverageItems, " **/ /** ")
 	return markdown
 }
