@@ -39,7 +39,11 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 		// Since some teams are in the same row (and share a prize), we'll have to check them all.
 		teams := utils.QueryAll(row, "div.block-team")
 		for _, team := range teams {
-			teamName := utils.Query(team, "span.name > a").FirstChild.Data
+			teamName := "TBD"
+			teamNameElement := utils.Query(team, "span.name > a")
+			if teamNameElement != nil {
+				teamName = teamNameElement.FirstChild.Data
+			}
 			newPrize := teamPrize{
 				teamName:  teamName,
 				prize:     prize,
