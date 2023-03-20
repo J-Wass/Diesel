@@ -30,7 +30,7 @@ func Coverage(liquipediaHTML *html.Node, liquiURL string) string {
 		}
 	}
 
-	markdown := "# Coverage\n\n"
+	markdown := ""
 
 	markdown += strings.Join(coverageItems, " **/ /** ")
 	return markdown

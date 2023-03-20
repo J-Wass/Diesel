@@ -4,6 +4,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -91,7 +92,7 @@ func setupRouter() *gin.Engine {
 		c.String(http.StatusOK, encodedMarkdown)
 	})
 
-	r.GET("/makethread/:url/template/:template", func(c *gin.Context) {
+	r.GET("/makethread/:url/template/:template/day/:day", func(c *gin.Context) {
 		base64Url := c.Param("url")
 		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
 		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
@@ -99,7 +100,9 @@ func setupRouter() *gin.Engine {
 		base64Template := c.Param("template")
 		decodedTemplate, _ := utils.DecodedFromBase64(base64Template)
 
-		markdown := liqui.MakeThread(rootNode, decodedTemplate)
+		dayNumber, _ := strconv.Atoi(c.Param("day"))
+
+		markdown := liqui.MakeThread(rootNode,decodedUrl, decodedTemplate, dayNumber)
 		encodedMarkdown := utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
 	})
@@ -111,6 +114,21 @@ func setupRouter() *gin.Engine {
 		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
 		markdown := liqui.MVPCandidates(rootNode, teamsAllowed)
 		encodedMarkdown := utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
+	r.GET("/title/:url", func(c *gin.Context) {
+		base64Url := c.Param("url")
+		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
+		title := liqui.Title(rootNode)
+		encodedMarkdown := utils.EncodedBase64(title)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
+	r.GET("/templates", func(c *gin.Context) {
+		_, templateNames := liqui.GetTemplates()
+		encodedMarkdown := utils.EncodedBase64(strings.Join(templateNames, ", "))
 		c.String(http.StatusOK, encodedMarkdown)
 	})
 
