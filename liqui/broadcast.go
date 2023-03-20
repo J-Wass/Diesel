@@ -49,7 +49,7 @@ func getBroadcastsFromLiqui(liquipediaHTML *html.Node) []broadcastStream {
 
 func markdownFromBroadcasts(broadcasts []broadcastStream) string{
 	var markdownStringBuilder strings.Builder
-	markdownStringBuilder.WriteString("# Streams\n\n|**Platforms**|**Link**|\n|:-|:-|\n")
+	markdownStringBuilder.WriteString("|**Platforms**|**Link**|\n|:-|:-|\n")
 
 	for _, broadcast := range broadcasts{
 		broadcastRow := fmt.Sprintf("|%s|[**%s**](%s)|\n", broadcast.platform, broadcast.name, broadcast.link)
