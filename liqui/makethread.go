@@ -34,6 +34,11 @@ func MakeThread(liquipediaHTML *html.Node, liquiUrl string, templateName string,
 	}
 
 	// Find macros in template and replace with read data.
+	if strings.Contains(threadMarkdown, "{TITLE}"){
+		titleMarkdown := Title(liquipediaHTML)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{TITLE}", titleMarkdown)
+	}
+
 	if strings.Contains(threadMarkdown, "{GROUPS}"){
 		groupsMarkdown := Groups(liquipediaHTML, liquiUrl)
 		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{GROUPS}", groupsMarkdown)
