@@ -2,6 +2,7 @@ package liqui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	utils "diesel/utils"
@@ -43,7 +44,14 @@ func getBroadcastsFromLiqui(liquipediaHTML *html.Node) []broadcastStream {
 			broadcastsStreams = append(broadcastsStreams, broadcastStream{name: cleanedStreamName, link: broadcastUrl, platform: strings.Title(platform)})
 		}
 	}
-	fmt.Print(broadcastsStreams)
+	sort.Slice(broadcastsStreams, func(i, j int) bool {
+		s1 := broadcastsStreams[i]
+		s2 := broadcastsStreams[j]
+		if s1.platform == s2.platform{
+			return s1.name < s2.name
+		} 
+        return s1.platform < s2.platform
+    })
 	return broadcastsStreams
 }
 
