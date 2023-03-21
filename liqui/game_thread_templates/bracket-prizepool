@@ -8,4 +8,7 @@
 {BROADCAST}
 
 # Results
-{GROUPS}
+{BRACKET}
+
+# Standings
+{PRIZEPOOL}
