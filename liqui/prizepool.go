@@ -64,7 +64,7 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 func markdownForTeamPrizes(teamPrizes []teamPrize) string {
 
 	PRIZEPOOL_HEADER := "|**Place**|**Prize**|**Team**|**RLCS Points**|\n|:-|:-|:-|:-|"
-	PRIZEPOOL_ROW := `|**{PLACEMENT}**|{PRIZE}|{TEAM_NAME}|+{POINTS} **()**|`
+	PRIZEPOOL_ROW := `|**{PLACEMENT}**|{PRIZE}|{TEAM_NAME}|+{POINTS}|`
 
 	var finalMarkdown strings.Builder
 	finalMarkdown.WriteString(PRIZEPOOL_HEADER)
