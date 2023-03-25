@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -12,15 +13,25 @@ import (
 func GetTemplates() (map[string]string, []string){
 	templates := make(map[string]string)
 	templateNames := make([]string, 0)
-	template_directory, _ := os.Open("./liqui/game_thread_templates")
-	defer template_directory.Close()
-	templateFiles, _ := template_directory.ReadDir(-1)
+
+	// Get the path to the template directory.
+	dieselExe, _ := os.Executable()
+	dieselPath := filepath.Dir(dieselExe)
+	gameThreadTemplatesPath := filepath.Join(dieselPath, "liqui", "game_thread_templates")
+	templateDirectory, _ := os.Open(gameThreadTemplatesPath)
+	defer templateDirectory.Close()
+
+	// Iterate all templates in the template dir.
+	templateFiles, _ := templateDirectory.ReadDir(-1)
 	for _, templateFile := range templateFiles {
 		filename := templateFile.Name()
-		templateString, _ := ioutil.ReadFile("./liqui/game_thread_templates/" + filename)
+		templatePath := filepath.Join(gameThreadTemplatesPath, filename)
+		templateString, _ := ioutil.ReadFile(templatePath)
 		templates[filename] = string(templateString)
 		templateNames = append(templateNames, filename)
 	}
+
+	// Return mapping from template name -> template markdown, and also the list of all templates.
 	return templates, templateNames
 }
 
