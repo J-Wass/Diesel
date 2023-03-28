@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -127,7 +128,7 @@ func setupRouter() *gin.Engine {
 	})
 
 	r.GET("/templates", func(c *gin.Context) {
-		_, templateNames := liqui.GetTemplates()
+		_, templateNames, _ := liqui.GetTemplates()
 		encodedMarkdown := utils.EncodedBase64(strings.Join(templateNames, ", "))
 		c.String(http.StatusOK, encodedMarkdown)
 	})
@@ -135,6 +136,7 @@ func setupRouter() *gin.Engine {
 	r.GET("/healthcheck", func(c *gin.Context) {
 		if utils.CacheWrites == 0 || utils.CacheLookups == 0 {
 			c.JSON(200, gin.H{
+				"age": fmt.Sprintf("%s commits old", utils.CommitAge()),
 				"cache size": len(utils.DOMCache),
 			})
 		} else {
@@ -142,6 +144,7 @@ func setupRouter() *gin.Engine {
 			thrashRate := float64(utils.CacheThrashes) / float64(utils.CacheLookups)
 			readWriteRate := float64(utils.CacheLookups) / float64(utils.CacheWrites)
 			c.JSON(200, gin.H{
+				"age": fmt.Sprintf("%s commits old", utils.CommitAge()),
 				"cache size":            len(utils.DOMCache),
 				"cache hit rate":        math.Round(hitRate*100) / 100,
 				"cache thrash rate":     math.Round(thrashRate*100) / 100,

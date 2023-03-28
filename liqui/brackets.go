@@ -63,9 +63,16 @@ func matchesForLiquiURL(liquipediaHTML *html.Node, dayNumber int) []match {
 	for _, matchElement := range matchElements {
 		// Check if match is finished yet.
 		timerElement := utils.Query(matchElement, ".timer-object")
+		if timerElement == nil{
+			continue
+		}
 
 		// Get timezone info.
-		timezone := utils.AttrOr(utils.Query(timerElement, "abbr"), "data-tz", "")
+		timerAbbreviation := utils.Query(timerElement, "abbr")
+		if timerAbbreviation == nil{
+			continue
+		}
+		timezone := utils.AttrOr(timerAbbreviation, "data-tz", "")
 		timezoneString := utils.Query(timerElement, "abbr").FirstChild.Data
 
 		// Get the timestring, convert to time.Time().
