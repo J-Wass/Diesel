@@ -128,7 +128,7 @@ func setupRouter() *gin.Engine {
 	})
 
 	r.GET("/templates", func(c *gin.Context) {
-		_, templateNames := liqui.GetTemplates()
+		_, templateNames, _ := liqui.GetTemplates()
 		encodedMarkdown := utils.EncodedBase64(strings.Join(templateNames, ", "))
 		c.String(http.StatusOK, encodedMarkdown)
 	})
