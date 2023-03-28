@@ -19,13 +19,13 @@ func EncodedBase64(inputString string) string {
 
 func CommitAge() string{
 	if runtime.GOOS == "windows" {
-		commitAge, err := exec.Command("cmd", "/C","git", "rev-list", "--count master").CombinedOutput()
+		commitAge, err := exec.Command("cmd", "/C","git", "rev-list", "--count", "master").CombinedOutput()
 		if err != nil{
 			return "today"
 		}
 		return string(commitAge)
     } else {
-        commitAge, err := exec.Command("git", "rev-list", "--count master").CombinedOutput()
+        commitAge, err := exec.Command("git", "rev-list", "--count", "master").CombinedOutput()
 		if err != nil{
 			return "today"
 		}
