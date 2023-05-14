@@ -23,28 +23,25 @@ type match struct {
 
 // Returns a datetime off of the time string from liquipedia.
 func datetimeFromLiquiTimestring(timestring string, timezone string) time.Time {
-	timezoneTokens := strings.Split(timezone, ":")
 
-	// Ensure the timezone string is 0-padded.
-	hour := timezoneTokens[0]
-	minute := timezoneTokens[1]
-	if len(hour) == 2 {
-		hour = strings.ReplaceAll(hour, "-", "-0")
-		hour = strings.ReplaceAll(hour, "+", "+0")
+	if len(timezone) == 5 {
+		// Add a padding 0 to the first digit, after the +/-
+		timezone = timezone[:1] + "0" + timezone[1:]
 	}
-	cleanedTimezone := hour + ":" + minute
 
 	// Liqui format example: March 26, 2022 - 13:15
-	dateTime, err := gostradamus.Parse(timestring+cleanedTimezone, "MMMM DD, YYYY - HH:mmzz")
-	// Possible timestring: "February 4, 2023 - 15:55+00:00"
+	fmt.Printf("%s and then %s", timestring, timezone)
+	dateTime, err := gostradamus.Parse(timestring+timezone, "MMMM DD, YYYY - HH:mmzz")
+	// Possible timestring: "February 4, 2023 - 15:55+0000"
 	if err != nil {
-		dateTime, err = gostradamus.Parse(timestring+cleanedTimezone, "MMMM D, YYYY - HH:mmzz")
+		dateTime, err = gostradamus.Parse(timestring+timezone, "MMMM D, YYYY - HH:mmzz")
 		if err != nil {
 			return time.Now()
 		}
 
 	}
-	return time.Time(dateTime)
+	return time.Time(dateTime).UTC()
+
 }
 
 // Returns 'hh:mm UTC' from a datetime"""
