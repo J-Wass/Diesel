@@ -34,8 +34,13 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 		// Fetch all cells, and rely on indices to get prize & points.
 		allCells := utils.QueryAll(row, "div.csstable-widget-cell")
 		prize := allCells[1].FirstChild.Data
-		points := allCells[2].FirstChild.FirstChild.Data
 
+		// Not all tourneys have rlcs points.
+		points := "N/A"
+		if len(allCells) == 4{
+			points = allCells[2].FirstChild.FirstChild.Data
+		}
+		
 		// Since some teams are in the same row (and share a prize), we'll have to check them all.
 		teams := utils.QueryAll(row, "div.block-team")
 		for _, team := range teams {
@@ -63,16 +68,25 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 
 func markdownForTeamPrizes(teamPrizes []teamPrize) string {
 
-	PRIZEPOOL_HEADER := "|**Place**|**Prize**|**Team**|**RLCS Points**|\n|:-|:-|:-|:-|"
-	PRIZEPOOL_ROW := `|**{PLACEMENT}**|{PRIZE}|{TEAM_NAME}|+{POINTS}|`
+	includePoints := teamPrizes[0].points != "N/A" 
 
+	PRIZEPOOL_HEADER := "|**Place**|**Prize**|**Team**|\n|:-|:-|:-|"
+	PRIZEPOOL_ROW := `|**{PLACEMENT}**|{PRIZE}|{TEAM_NAME}|`
+	if includePoints{
+		PRIZEPOOL_HEADER = "|**Place**|**Prize**|**Team**|**RLCS Points**|\n|:-|:-|:-|:-|"
+		PRIZEPOOL_ROW = `|**{PLACEMENT}**|{PRIZE}|{TEAM_NAME}|{POINTS}|`
+	}
+
+	
 	var finalMarkdown strings.Builder
 	finalMarkdown.WriteString(PRIZEPOOL_HEADER)
 	for _, prize := range teamPrizes {
 		newRow := strings.ReplaceAll(PRIZEPOOL_ROW, "{PLACEMENT}", prize.placement)
 		newRow = strings.ReplaceAll(newRow, "{PRIZE}", prize.prize)
 		newRow = strings.ReplaceAll(newRow, "{TEAM_NAME}", prize.teamName)
-		newRow = strings.ReplaceAll(newRow, "{POINTS}", prize.points)
+		if includePoints{
+			newRow = strings.ReplaceAll(newRow, "{POINTS}", prize.points)
+		}
 		finalMarkdown.WriteString("\n" + newRow)
 	}
 	return finalMarkdown.String()
