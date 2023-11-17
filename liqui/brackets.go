@@ -154,8 +154,8 @@ func matchesForLiquiURL(liquipediaHTML *html.Node, dayNumber int) []match {
 func markdownForMatches(matches []match, liqui_url string) string {
 	// Templates for markdown header and row.
 	BRACKET_MARKDOWN_HEADER := "|*ELIMINATION*||[**Liquipedia Bracket**]({LIQUI_URL}#Results)|\n|:-|:-|:-|"
-	BRACKET_MARKDOWN_ROW_UNFINISHED := "|{TEAM1}|[**{TIMESTRING}**](https://www.google.com/search?q={TIMESTRING})|{TEAM2}|"
-	BRACKET_MARKDOWN_ROW_FINISHED := "|{TEAM1}|**{TEAM1_SCORE} - {TEAM2_SCORE}**|{TEAM2}|"
+	BRACKET_MARKDOWN_ROW_UNSTARTED := "|{TEAM1}|[**{TIMESTRING}**](https://www.google.com/search?q={TIMESTRING})|{TEAM2}|"
+	BRACKET_MARKDOWN_ROW_STARTED := "|{TEAM1}|{TEAM1_SCORE} - {TEAM2_SCORE}|{TEAM2}|"
 
 	var finalMarkdown strings.Builder
 	header := strings.ReplaceAll(BRACKET_MARKDOWN_HEADER, "{LIQUI_URL}", liqui_url)
@@ -165,17 +165,25 @@ func markdownForMatches(matches []match, liqui_url string) string {
 	for _, match := range matches {
 		team1Name := match.team1Name
 		team2Name := match.team2Name
-		rowMarkdown := BRACKET_MARKDOWN_ROW_UNFINISHED
+		rowMarkdown := BRACKET_MARKDOWN_ROW_UNSTARTED
 
+		// If match has started, show the results.
+		if match.team1Score != "0" || match.team2Score != "0"{
+			rowMarkdown = BRACKET_MARKDOWN_ROW_STARTED
+		}
 		// If match is finished, bold the winning team.
 		if match.isFinished {
-			rowMarkdown = BRACKET_MARKDOWN_ROW_FINISHED
 			if match.team1Score > match.team2Score {
 				team1Name = fmt.Sprintf("**%s**", team1Name)
 			} else {
 				team2Name = fmt.Sprintf("**%s**", team2Name)
 			}
+			// Hacky way to bold the scores lol.
+			match.team1Score = "**" + match.team1Score
+			match.team2Score = match.team2Score + "**"
 		}
+
+		
 
 		rowMarkdown = strings.ReplaceAll(rowMarkdown, "{TEAM1}", team1Name)
 		rowMarkdown = strings.ReplaceAll(rowMarkdown, "{TEAM2}", team2Name)
