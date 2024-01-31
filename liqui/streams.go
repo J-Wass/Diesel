@@ -29,7 +29,7 @@ func Streams(liquipediaHTML *html.Node) string {
 
 		// Iterate all teams, build a stream for them.
 		for i, team := range teams{
-			if i < len(streams){
+			if i >= len(streams){
 				break
 			}
 			teamname := utils.AttrOr(utils.Query(team, "a"), "title", "")

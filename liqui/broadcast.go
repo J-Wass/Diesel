@@ -44,6 +44,7 @@ func getBroadcastsFromLiqui(liquipediaHTML *html.Node) []broadcastStream {
 			}
 		}
 	}
+	
 
 	broadcastsStreams := make([]broadcastStream, 0)
 	for platform, broadcastUrls := range domainBroadcasts {
