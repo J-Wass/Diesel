@@ -93,7 +93,7 @@ func Swiss(liquipediaHTML *html.Node) string {
 				// Get scoreline.
 				spans := utils.QueryAll(td, "span")
 				score := spans[len(spans)-1].FirstChild.Data
-				if score != "img" {
+				if score != "img" && score != "a" {
 					match += " " + strings.Replace(score, ":", "-", -1)
 				}
 
@@ -102,6 +102,7 @@ func Swiss(liquipediaHTML *html.Node) string {
 				if otherTeam != nil {
 					match += " " + nameToAcronym(utils.AttrOr(otherTeam, "title", ""))
 				}
+
 				row = append(row, match)
 			}
 			// Combine all scorelines using reddit markdown.
