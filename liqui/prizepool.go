@@ -37,7 +37,7 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 
 		// Not all tourneys have rlcs points.
 		points := "N/A"
-		if len(allCells) == 4{
+		if len(allCells) >= 4{
 			points = allCells[2].FirstChild.FirstChild.Data
 		}
 		
