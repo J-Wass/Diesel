@@ -26,7 +26,7 @@ func contains(elems []string, v string) bool {
 }
 
 func getBroadcastsFromLiqui(liquipediaHTML *html.Node) []broadcastStream {
-	SUPPORTED_STREAMS := []string{"rocketstreetlive", "rocketleague", "rocketleaguemena", "rocketleaguesam", "rocketleageueoce", "rocketleageueapac", "acgl alpha", "therocketrb", "dreamhack", "rizzo", "rloceania", "oceaniarl", "oxg_esports"}
+	SUPPORTED_STREAMS := []string{"rocketstreetlive", "rocketleague", "rocketleaguemena", "rocketleaguesam", "rocketleageueoce", "rocketleageueapac", "acgl alpha", "therocketrb", "dreamhack", "rizzo", "rloceania", "oceaniarl", "oxg_esports", "rlesports"}
 	domains := []string{"twitch", "youtube"}
 	domainBroadcasts := map[string][]string{}
 	for _, d := range domains {

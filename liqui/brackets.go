@@ -30,7 +30,6 @@ func datetimeFromLiquiTimestring(timestring string, timezone string) time.Time {
 	}
 
 	// Liqui format example: March 26, 2022 - 13:15
-	fmt.Printf("%s and then %s", timestring, timezone)
 	dateTime, err := gostradamus.Parse(timestring+timezone, "MMMM DD, YYYY - HH:mmzz")
 	// Possible timestring: "February 4, 2023 - 15:55+0000"
 	if err != nil {

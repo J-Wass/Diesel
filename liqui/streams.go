@@ -29,10 +29,15 @@ func Streams(liquipediaHTML *html.Node) string {
 
 		// Iterate all teams, build a stream for them.
 		for i, team := range teams{
+			if i < len(streams){
+				break
+			}
 			teamname := utils.AttrOr(utils.Query(team, "a"), "title", "")
 			rawStreamLink := utils.AttrOr(utils.Query(streams[i], "a"), "title", "https://www.twitch.tv/directory/game/Rocket%20League")
 			rawStreamLinkSplit := strings.Split(rawStreamLink, "/")
 			streamLink := "https://www.twitch.tv/" + rawStreamLinkSplit[len(rawStreamLinkSplit)-1]
+			
+			
 			if len(teamname) >0 && len(streamLink) >0{
 				newStream := stream{name: teamname, link: streamLink} 
 				formattedStreams = append(formattedStreams, newStream)
