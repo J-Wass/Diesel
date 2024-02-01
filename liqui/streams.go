@@ -45,7 +45,7 @@ func Streams(liquipediaHTML *html.Node) string {
 		}
 		
 	}
-	moreStreams := len(formattedStreams) > 4
+	moreStreams := true
 	for moreStreams{
 		fourTeams := formattedStreams[:4]
 		moreStreams = len(formattedStreams) > 4
