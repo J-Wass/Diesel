@@ -30,6 +30,8 @@ func Coverage(liquipediaHTML *html.Node, liquiURL string) string {
 		}
 	}
 
+	coverageItems = append(coverageItems, "[**Pickstop.gg**](https://pickstop.gg/rl)")
+
 	markdown := ""
 
 	markdown += strings.Join(coverageItems, " **/ /** ")
