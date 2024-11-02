@@ -28,7 +28,13 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 		}
 
 		// Get placement, name, prize, and points for each row. Remove the non-breaking space.
-		placement := utils.Query(row, "div.prizepooltable-place > div").LastChild.Data
+
+		// The placement (1st, 3rd, 8th, etc) is either under div.prizepooltable-place, or under div.prizepooltable-place > span (the span adds decoration to the placement)
+		placement_element := utils.Query(row, "div.prizepooltable-place")
+		placement := placement_element.FirstChild.Data
+		if utils.Query(placement_element, "span") != nil{
+			placement = placement_element.LastChild.Data
+		}
 		placement = strings.ReplaceAll(placement, "\u00A0", "")
 
 		// Fetch all cells, and rely on indices to get prize & points.
@@ -38,7 +44,12 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 		// Not all tourneys have rlcs points.
 		points := "N/A"
 		if len(allCells) >= 4{
-			points = allCells[2].FirstChild.FirstChild.Data
+			// points may have an inner div for decoration, so we check if there is an additional child element.
+			point_subelement := allCells[2].FirstChild
+			points = point_subelement.Data
+			if point_subelement.FirstChild != nil{
+				points = point_subelement.FirstChild.Data
+			}
 		}
 		
 		// Since some teams are in the same row (and share a prize), we'll have to check them all.
