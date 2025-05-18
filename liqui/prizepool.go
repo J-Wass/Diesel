@@ -2,6 +2,7 @@ package liqui
 
 import (
 	utils "diesel/utils"
+	"fmt"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -19,6 +20,37 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 	prizepool := utils.Query(liquipediaHTML, "div.prizepooltable")
 	prizepoolRows := utils.QueryAll(prizepool, "div.csstable-widget-row")
 	prizes := make([]teamPrize, 0)
+
+	// The order of the prizepool table headers can change.
+	// Initialize the headers as -1, if we find them in the headers table we will update.
+	headers := utils.QueryAll(liquipediaHTML, "div.prizepooltable-header div.csstable-widget-cell")
+	//placeIndex := -1
+	dollarPrizeIndex := -1
+	rlcsPointsIndex := -1
+	//teamNameIndex := -1
+	for index, header := range headers{
+		column := ""
+		if header.FirstChild.Data == "span"{
+			column = header.LastChild.FirstChild.FirstChild.Data
+		} else{
+			column = header.FirstChild.Data
+		}
+		column = strings.ReplaceAll(html.UnescapeString(column), "\u00A0", "")
+
+		if column == "$"{
+			dollarPrizeIndex = index
+		}else if column == "RLCS Points"{
+			rlcsPointsIndex = index
+		}
+		fmt.Printf("col %s %s %d %t\n", column, utils.EncodedBase64(column), index, column=="$")
+		// } else if column == "Place"{
+		// 	placeIndex = index
+		// }  else if column == "Participant"{
+		// 	teamNameIndex = index
+		// }
+	}
+
+
 	for _, row := range prizepoolRows {
 
 		// Skips prizepool rows that are the header or expand menu.
@@ -39,13 +71,17 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 
 		// Fetch all cells, and rely on indices to get prize & points.
 		allCells := utils.QueryAll(row, "div.csstable-widget-cell")
-		prize := allCells[1].FirstChild.Data
+		prize := "N/A"
+		if dollarPrizeIndex >=0{
+			prize = allCells[dollarPrizeIndex].FirstChild.Data
+
+		}
 
 		// Not all tourneys have rlcs points.
 		points := "N/A"
-		if len(allCells) >= 4{
+		if rlcsPointsIndex >= 0{
 			// points may have an inner div for decoration, so we check if there is an additional child element.
-			point_subelement := allCells[2].FirstChild
+			point_subelement := allCells[rlcsPointsIndex].FirstChild
 			points = point_subelement.Data
 			if point_subelement.FirstChild != nil{
 				points = point_subelement.FirstChild.Data

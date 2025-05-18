@@ -12,7 +12,7 @@ func Coverage(liquipediaHTML *html.Node, liquiURL string) string {
 	coverageItems := make([]string, 0)
 	coverageItems = append(coverageItems, fmt.Sprintf("[**Liquipedia**](%s)", liquiURL))
 
-	octaneGGLink := utils.Query(liquipediaHTML, "a[href^=\"https://octane.gg/events\"]")
+	octaneGGLink := utils.Query(liquipediaHTML, "a[href*=\"octane.gg/events\"]")
 	octaneGGHref := "#"
 	if octaneGGLink != nil {
 		octaneGGHref = utils.AttrOr(octaneGGLink, "href", "")
@@ -21,7 +21,7 @@ func Coverage(liquipediaHTML *html.Node, liquiURL string) string {
 		}
 	}
 
-	startGGLink := utils.Query(liquipediaHTML, "a[href^=\"https://www.start.gg/tournament\"]")
+	startGGLink := utils.Query(liquipediaHTML, "a[href*=\"start.gg/tournament\"]")
 	startGGHref := "#"
 	if startGGLink != nil {
 		startGGHref = utils.AttrOr(startGGLink, "href", "")
@@ -31,6 +31,15 @@ func Coverage(liquipediaHTML *html.Node, liquiURL string) string {
 	}
 
 	coverageItems = append(coverageItems, "[**Pickstop.gg**](https://pickstop.gg/rl)")
+
+	blasttvLink := utils.Query(liquipediaHTML, "a[href*=\"blast.tv/rl/tournament\"]")
+	blasttvHref := "#"
+	if blasttvLink != nil {
+		blasttvHref = utils.AttrOr(blasttvLink, "href", "")
+		if blasttvHref != "" {
+			coverageItems = append(coverageItems, fmt.Sprintf("[**Blast.tv**](%s)", blasttvHref))
+		}
+	}
 
 	markdown := ""
 
