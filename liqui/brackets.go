@@ -49,6 +49,89 @@ func timeOfDayFromDatetime(datetime time.Time) string {
 	return dt.Format("HH:mm UTC")
 }
 
+func matchesForLiquiURLWithDateNumber(liquipediaHTML *html.Node, dateNumber int) []match {
+	// List of each match in the bracket.
+	matches := make([]match, 0)
+	matchElements := utils.QueryAll(liquipediaHTML, ".brkts-round-center")
+	for _, matchElement := range matchElements {
+		// Check if match is finished yet.
+		timerElement := utils.Query(matchElement, ".timer-object")
+		if timerElement == nil{
+			continue
+		}
+
+		// Get timezone info.
+		timerAbbreviation := utils.Query(timerElement, "abbr")
+		if timerAbbreviation == nil{
+			continue
+		}
+		timezone := utils.AttrOr(timerAbbreviation, "data-tz", "")
+		timezoneString := utils.Query(timerElement, "abbr").FirstChild.Data
+
+		// Get the timestring, convert to time.Time().
+		liquiTimestring := timerElement.FirstChild.Data
+		liquiTimestring = strings.ReplaceAll(liquiTimestring, timezoneString, "")
+		liquiTimestring = strings.TrimSpace(liquiTimestring)
+		gameStartTime := datetimeFromLiquiTimestring(liquiTimestring, timezone)
+
+		// This game is outside of the requested day, so ignore it.
+		if gameStartTime.Day() != dateNumber {
+			continue
+		}
+
+		isFinished := utils.AttrOr(timerElement, "data-finished", "") != ""
+		teams := utils.QueryAll(matchElement, ".brkts-opponent-entry")
+		team1Name := "TBD"
+		team1Score := ""
+		team2Name := "TBD"
+		team2Score := ""
+
+		for i, team := range teams {
+			teamName := "TBD"
+			teamNameElement := utils.Query(team, ".name")
+			if teamNameElement != nil && teamNameElement.FirstChild != nil {
+				teamName = teamNameElement.FirstChild.Data
+			}
+
+			// Get team score, if it exists.
+			teamScoreElement := utils.Query(team, ".brkts-opponent-score-inner")
+			teamScore := "-"
+			if teamScoreElement != nil && teamScoreElement.FirstChild != nil {
+				teamScore = teamScoreElement.FirstChild.Data
+				// If this team has won, the score is wrapped in a b element.
+				winningTeamScore := utils.Query(teamScoreElement, "b")
+				if winningTeamScore != nil {
+					teamScore = winningTeamScore.FirstChild.Data
+				}
+			}
+
+			if i == 0 {
+				team1Name = teamName
+				team1Score = teamScore
+			} else {
+				team2Name = teamName
+				team2Score = teamScore
+			}
+		}
+
+		newMatch := match{
+			team1Name:     team1Name,
+			team2Name:     team2Name,
+			team1Score:    team1Score,
+			team2Score:    team2Score,
+			gameStartTime: gameStartTime,
+			isFinished:    isFinished,
+		}
+		matches = append(matches, newMatch)
+	}
+
+	// Return matches, sorted by game start time.
+	sort.Slice(matches, func(i, j int) bool {
+		return matches[i].gameStartTime.Before(matches[j].gameStartTime)
+	})
+	return matches
+}
+
 // Returns a list of matches from a given liquipedia html root node.
 func matchesForLiquiURL(liquipediaHTML *html.Node, dayNumber int) []match {
 	dayBuckets := utils.DayBuckets(liquipediaHTML)
@@ -167,7 +250,7 @@ func markdownForMatches(matches []match, liqui_url string) string {
 		rowMarkdown := BRACKET_MARKDOWN_ROW_UNSTARTED
 
 		// If match has started, show the results.
-		if match.team1Score != "0" || match.team2Score != "0"{
+		if match.team1Score != "-" || match.team2Score != "-"{
 			rowMarkdown = BRACKET_MARKDOWN_ROW_STARTED
 		}
 		// If match is finished, bold the winning team.
@@ -181,8 +264,6 @@ func markdownForMatches(matches []match, liqui_url string) string {
 			match.team1Score = "**" + match.team1Score
 			match.team2Score = match.team2Score + "**"
 		}
-
-		
 
 		rowMarkdown = strings.ReplaceAll(rowMarkdown, "{TEAM1}", team1Name)
 		rowMarkdown = strings.ReplaceAll(rowMarkdown, "{TEAM2}", team2Name)
@@ -202,3 +283,12 @@ func Bracket(liquipediaHTML *html.Node, liqui_url string, dayNumber int) string 
 
 	return markdown
 }
+
+func BracketWithDate(liquipediaHTML *html.Node, liqui_url string, dateNumber int) string {
+	matches := matchesForLiquiURLWithDateNumber(liquipediaHTML, dateNumber)
+	markdown := markdownForMatches(matches, liqui_url)
+
+	return markdown
+}
+
+

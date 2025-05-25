@@ -97,3 +97,61 @@ func MakeThread(liquipediaHTML *html.Node, liquiUrl string, templateName string,
 	
 	return threadMarkdown
 }
+
+func MakeThreadWithDate(liquipediaHTML *html.Node, liquiUrl string, templateName string, dateNumber int) string {
+	// Get all templates. Todo - just read this at server-start time.
+	templates, templateNames, _ := GetTemplates()
+
+	threadMarkdown, ok := templates[templateName]
+	if !ok {
+		return fmt.Sprintf("Couldn't find a template with name %s. Only found %s.", templateName, strings.Join(templateNames, ", "))
+	}
+
+	// Find macros in template and replace with read data.
+	if strings.Contains(threadMarkdown, "{TITLE}"){
+		titleMarkdown := Title(liquipediaHTML)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{TITLE}", titleMarkdown)
+	}
+
+	if strings.Contains(threadMarkdown, "{GROUPS}"){
+		groupsMarkdown := Groups(liquipediaHTML, liquiUrl)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{GROUPS}", groupsMarkdown)
+	}
+
+	if strings.Contains(threadMarkdown, "{SWISS}"){
+		swissMarkdown := Swiss(liquipediaHTML)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{SWISS}", swissMarkdown)
+	}
+
+	if strings.Contains(threadMarkdown, "{BRACKET}"){
+		bracketMarkdown := BracketWithDate(liquipediaHTML, liquiUrl, dateNumber)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{BRACKET}", bracketMarkdown)
+	}
+
+	if strings.Contains(threadMarkdown, "{COVERAGE}"){
+		coverageMarkdown := Coverage(liquipediaHTML, liquiUrl)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{COVERAGE}", coverageMarkdown)
+	}
+
+	if strings.Contains(threadMarkdown, "{PRIZEPOOL}"){
+		prizepoolMarkdown := Prizepool(liquipediaHTML)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{PRIZEPOOL}", prizepoolMarkdown)
+	}
+
+	if strings.Contains(threadMarkdown, "{STREAMS}"){
+		streamsMarkdown := Streams(liquipediaHTML)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{STREAMS}", streamsMarkdown)
+	}
+
+	if strings.Contains(threadMarkdown, "{SCHEDULE}"){
+		scheduleMarkdown := ScheduleWithDate(liquipediaHTML, dateNumber)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{SCHEDULE}", scheduleMarkdown)
+	}
+	
+	if strings.Contains(threadMarkdown, "{BROADCAST}"){
+		broadcastMarkdown := Broadcast(liquipediaHTML)
+		threadMarkdown = strings.ReplaceAll(threadMarkdown, "{BROADCAST}", broadcastMarkdown)
+	}
+	
+	return threadMarkdown
+}

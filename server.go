@@ -28,6 +28,17 @@ func setupRouter() *gin.Engine {
 		c.String(http.StatusOK, encodedMarkdown)
 	})
 
+	r.GET("/schedule/:url/date/:date", func(c *gin.Context) {
+		base64Url := c.Param("url")
+		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
+		dateNumber, _ := strconv.Atoi(c.Param("date"))
+
+		markdown := liqui.ScheduleWithDate(rootNode, dateNumber)
+		encodedMarkdown := utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
 	r.GET("/swiss/:url", func(c *gin.Context) {
 		base64Url := c.Param("url")
 		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
@@ -53,6 +64,17 @@ func setupRouter() *gin.Engine {
 		dayNumber, _ := strconv.Atoi(c.Param("day"))
 
 		markdown := liqui.Bracket(rootNode, decodedUrl, dayNumber)
+		encodedMarkdown := utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
+	r.GET("/bracket/:url/date/:date", func(c *gin.Context) {
+		base64Url := c.Param("url")
+		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
+		dateNumber, _ := strconv.Atoi(c.Param("date"))
+
+		markdown := liqui.BracketWithDate(rootNode, decodedUrl, dateNumber)
 		encodedMarkdown := utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
 	})
@@ -104,6 +126,21 @@ func setupRouter() *gin.Engine {
 		dayNumber, _ := strconv.Atoi(c.Param("day"))
 
 		markdown := liqui.MakeThread(rootNode,decodedUrl, decodedTemplate, dayNumber)
+		encodedMarkdown := utils.EncodedBase64(markdown)
+		c.String(http.StatusOK, encodedMarkdown)
+	})
+
+	r.GET("/makethread/:url/template/:template/date/:date", func(c *gin.Context) {
+		base64Url := c.Param("url")
+		decodedUrl, _ := utils.DecodedFromBase64(base64Url)
+		rootNode, _ := utils.RootDOMNodeForUrl(decodedUrl)
+
+		base64Template := c.Param("template")
+		decodedTemplate, _ := utils.DecodedFromBase64(base64Template)
+
+		dateNumber, _ := strconv.Atoi(c.Param("date"))
+
+		markdown := liqui.MakeThreadWithDate(rootNode,decodedUrl, decodedTemplate, dateNumber)
 		encodedMarkdown := utils.EncodedBase64(markdown)
 		c.String(http.StatusOK, encodedMarkdown)
 	})
