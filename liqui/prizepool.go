@@ -28,28 +28,27 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 	dollarPrizeIndex := -1
 	rlcsPointsIndex := -1
 	//teamNameIndex := -1
-	for index, header := range headers{
+	for index, header := range headers {
 		column := ""
-		if header.FirstChild.Data == "span"{
+		if header.FirstChild.Data == "span" {
 			column = header.LastChild.FirstChild.FirstChild.Data
-		} else{
+		} else {
 			column = header.FirstChild.Data
 		}
 		column = strings.ReplaceAll(html.UnescapeString(column), "\u00A0", "")
 
-		if column == "$"{
+		if column == "$" {
 			dollarPrizeIndex = index
-		}else if column == "RLCS Points"{
+		} else if column == "RLCS Points" {
 			rlcsPointsIndex = index
 		}
-		fmt.Printf("col %s %s %d %t\n", column, utils.EncodedBase64(column), index, column=="$")
+		fmt.Printf("col %s %s %d %t\n", column, utils.EncodedBase64(column), index, column == "$")
 		// } else if column == "Place"{
 		// 	placeIndex = index
 		// }  else if column == "Participant"{
 		// 	teamNameIndex = index
 		// }
 	}
-
 
 	for _, row := range prizepoolRows {
 
@@ -64,7 +63,7 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 		// The placement (1st, 3rd, 8th, etc) is either under div.prizepooltable-place, or under div.prizepooltable-place > span (the span adds decoration to the placement)
 		placement_element := utils.Query(row, "div.prizepooltable-place")
 		placement := placement_element.FirstChild.Data
-		if utils.Query(placement_element, "span") != nil{
+		if utils.Query(placement_element, "span") != nil {
 			placement = placement_element.LastChild.Data
 		}
 		placement = strings.ReplaceAll(placement, "\u00A0", "")
@@ -72,22 +71,22 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 		// Fetch all cells, and rely on indices to get prize & points.
 		allCells := utils.QueryAll(row, "div.csstable-widget-cell")
 		prize := "N/A"
-		if dollarPrizeIndex >=0{
+		if dollarPrizeIndex >= 0 {
 			prize = allCells[dollarPrizeIndex].FirstChild.Data
 
 		}
 
 		// Not all tourneys have rlcs points.
 		points := "N/A"
-		if rlcsPointsIndex >= 0{
+		if rlcsPointsIndex >= 0 {
 			// points may have an inner div for decoration, so we check if there is an additional child element.
 			point_subelement := allCells[rlcsPointsIndex].FirstChild
 			points = point_subelement.Data
-			if point_subelement.FirstChild != nil{
+			if point_subelement.FirstChild != nil {
 				points = point_subelement.FirstChild.Data
 			}
 		}
-		
+
 		// Since some teams are in the same row (and share a prize), we'll have to check them all.
 		teams := utils.QueryAll(row, "div.block-team")
 		for _, team := range teams {
@@ -115,23 +114,22 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 
 func markdownForTeamPrizes(teamPrizes []teamPrize) string {
 
-	includePoints := teamPrizes[0].points != "N/A" 
+	includePoints := teamPrizes[0].points != "N/A"
 
 	PRIZEPOOL_HEADER := "|**Place**|**Prize**|**Team**|\n|:-|:-|:-|"
 	PRIZEPOOL_ROW := `|**{PLACEMENT}**|{PRIZE}|{TEAM_NAME}|`
-	if includePoints{
+	if includePoints {
 		PRIZEPOOL_HEADER = "|**Place**|**Prize**|**Team**|**RLCS Points**|\n|:-|:-|:-|:-|"
 		PRIZEPOOL_ROW = `|**{PLACEMENT}**|{PRIZE}|{TEAM_NAME}|{POINTS}|`
 	}
 
-	
 	var finalMarkdown strings.Builder
 	finalMarkdown.WriteString(PRIZEPOOL_HEADER)
 	for _, prize := range teamPrizes {
 		newRow := strings.ReplaceAll(PRIZEPOOL_ROW, "{PLACEMENT}", prize.placement)
 		newRow = strings.ReplaceAll(newRow, "{PRIZE}", prize.prize)
 		newRow = strings.ReplaceAll(newRow, "{TEAM_NAME}", prize.teamName)
-		if includePoints{
+		if includePoints {
 			newRow = strings.ReplaceAll(newRow, "{POINTS}", prize.points)
 		}
 		finalMarkdown.WriteString("\n" + newRow)
@@ -141,6 +139,8 @@ func markdownForTeamPrizes(teamPrizes []teamPrize) string {
 
 func Prizepool(liquipediaHTML *html.Node) string {
 	teamPrizes := teamsForHTML(liquipediaHTML)
-	prizepoolMarkdown := markdownForTeamPrizes(teamPrizes)
-	return prizepoolMarkdown
+	if len(teamPrizes) == 0 {
+		return ""
+	}
+	return markdownForTeamPrizes(teamPrizes)
 }
