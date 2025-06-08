@@ -2,18 +2,17 @@ package liqui
 
 import (
 	utils "diesel/utils"
-	"fmt"
 	"strings"
 
 	"golang.org/x/net/html"
 )
 
 type teamPrize struct {
-	teamName  string
+	teamName      string
 	usePlayerName bool
-	prize     string
-	points    string
-	placement string
+	prize         string
+	points        string
+	placement     string
 }
 
 func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
@@ -43,12 +42,6 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 		} else if column == "RLCS Points" {
 			rlcsPointsIndex = index
 		}
-		fmt.Printf("col %s %s %d %t\n", column, utils.EncodedBase64(column), index, column == "$")
-		// } else if column == "Place"{
-		// 	placeIndex = index
-		// }  else if column == "Participant"{
-		// 	teamNameIndex = index
-		// }
 	}
 
 	for _, row := range prizepoolRows {
@@ -91,7 +84,7 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 		// Since some teams are in the same row (and share a prize), we'll have to check them all.
 		teams := utils.QueryAll(row, "div.block-team")
 		usePlayerName := false // indicates if these are teams or players (1v1)
-		if len(teams) == 0{
+		if len(teams) == 0 {
 			// if teams are none, check for players (satisfies 1v1s)
 			teams = utils.QueryAll(row, "div.block-player")
 			usePlayerName = true
@@ -103,10 +96,10 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 				teamName = teamNameElement.FirstChild.Data
 			}
 			newPrize := teamPrize{
-				teamName:  teamName,
-				prize:     prize,
-				placement: placement,
-				points:    points,
+				teamName:      teamName,
+				prize:         prize,
+				placement:     placement,
+				points:        points,
 				usePlayerName: usePlayerName,
 			}
 			prizes = append(prizes, newPrize)
@@ -133,9 +126,9 @@ func markdownForTeamPrizes(teamPrizes []teamPrize) string {
 	}
 
 	var finalMarkdown strings.Builder
-	if teamPrizes[0].usePlayerName{
+	if teamPrizes[0].usePlayerName {
 		finalMarkdown.WriteString(PRIZEPOOL_HEADER_PLAYER)
-	}else{
+	} else {
 		finalMarkdown.WriteString(PRIZEPOOL_HEADER)
 	}
 

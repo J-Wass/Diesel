@@ -3,9 +3,11 @@ package liqui
 import (
 	"diesel/utils"
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"golang.org/x/net/html"
 
@@ -49,6 +51,31 @@ func timeOfDayFromDatetime(datetime time.Time) string {
 	return dt.Format("HH:mm UTC")
 }
 
+func sanitizeTeamName(name string) string {
+	// Remove zero-width and other invisible characters explicitly
+	invisible := []rune{
+		'\u200B', // Zero-width space
+		'\u200C', // Zero-width non-joiner
+		'\u200D', // Zero-width joiner
+		'\u2060', // Word joiner
+		'\uFEFF', // Zero-width no-break space (BOM)
+	}
+
+	name = strings.Map(func(r rune) rune {
+		for _, inv := range invisible {
+			if r == inv {
+				return -1
+			}
+		}
+		if unicode.IsControl(r) || unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, name)
+
+	return strings.TrimSpace(name)
+}
+
 func matchesForLiquiURLWithDateNumber(liquipediaHTML *html.Node, dateNumber int) []match {
 	// List of each match in the bracket.
 	matches := make([]match, 0)
@@ -56,13 +83,13 @@ func matchesForLiquiURLWithDateNumber(liquipediaHTML *html.Node, dateNumber int)
 	for _, matchElement := range matchElements {
 		// Check if match is finished yet.
 		timerElement := utils.Query(matchElement, ".timer-object")
-		if timerElement == nil{
+		if timerElement == nil {
 			continue
 		}
 
 		// Get timezone info.
 		timerAbbreviation := utils.Query(timerElement, "abbr")
-		if timerAbbreviation == nil{
+		if timerAbbreviation == nil {
 			continue
 		}
 		timezone := utils.AttrOr(timerAbbreviation, "data-tz", "")
@@ -92,9 +119,15 @@ func matchesForLiquiURLWithDateNumber(liquipediaHTML *html.Node, dateNumber int)
 			if teamNameElement != nil && teamNameElement.FirstChild != nil {
 				teamName = teamNameElement.FirstChild.Data
 				// Handle teamname that are links. Name is only layer below anchor tag.
-				if teamName == "a"{
+				if teamName == "a" {
 					teamName = teamNameElement.FirstChild.FirstChild.Data
 				}
+			}
+
+			cleanedName := sanitizeTeamName(teamName)
+			log.Printf("team name [%s] [%t]", cleanedName, cleanedName == "")
+			if cleanedName == "" {
+				teamName = "TBD"
 			}
 
 			// Get team score, if it exists.
@@ -146,13 +179,13 @@ func matchesForLiquiURL(liquipediaHTML *html.Node, dayNumber int) []match {
 	for _, matchElement := range matchElements {
 		// Check if match is finished yet.
 		timerElement := utils.Query(matchElement, ".timer-object")
-		if timerElement == nil{
+		if timerElement == nil {
 			continue
 		}
 
 		// Get timezone info.
 		timerAbbreviation := utils.Query(timerElement, "abbr")
-		if timerAbbreviation == nil{
+		if timerAbbreviation == nil {
 			continue
 		}
 		timezone := utils.AttrOr(timerAbbreviation, "data-tz", "")
@@ -254,7 +287,7 @@ func markdownForMatches(matches []match, liqui_url string) string {
 		rowMarkdown := BRACKET_MARKDOWN_ROW_UNSTARTED
 
 		// If match has started, show the results.
-		if match.team1Score != "-" || match.team2Score != "-"{
+		if match.team1Score != "-" || match.team2Score != "-" {
 			rowMarkdown = BRACKET_MARKDOWN_ROW_STARTED
 		}
 		// If match is finished, bold the winning team.
@@ -294,5 +327,3 @@ func BracketWithDate(liquipediaHTML *html.Node, liqui_url string, dateNumber int
 
 	return markdown
 }
-
-
