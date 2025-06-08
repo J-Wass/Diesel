@@ -10,6 +10,7 @@ import (
 
 type teamPrize struct {
 	teamName  string
+	usePlayerName bool
 	prize     string
 	points    string
 	placement string
@@ -89,6 +90,12 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 
 		// Since some teams are in the same row (and share a prize), we'll have to check them all.
 		teams := utils.QueryAll(row, "div.block-team")
+		usePlayerName := false // indicates if these are teams or players (1v1)
+		if len(teams) == 0{
+			// if teams are none, check for players (satisfies 1v1s)
+			teams = utils.QueryAll(row, "div.block-player")
+			usePlayerName = true
+		}
 		for _, team := range teams {
 			teamName := "TBD"
 			teamNameElement := utils.Query(team, "span.name > a")
@@ -100,6 +107,7 @@ func teamsForHTML(liquipediaHTML *html.Node) []teamPrize {
 				prize:     prize,
 				placement: placement,
 				points:    points,
+				usePlayerName: usePlayerName,
 			}
 			prizes = append(prizes, newPrize)
 		}
@@ -117,6 +125,7 @@ func markdownForTeamPrizes(teamPrizes []teamPrize) string {
 	includePoints := teamPrizes[0].points != "N/A"
 
 	PRIZEPOOL_HEADER := "|**Place**|**Prize**|**Team**|\n|:-|:-|:-|"
+	PRIZEPOOL_HEADER_PLAYER := "|**Place**|**Prize**|**Player**|\n|:-|:-|:-|"
 	PRIZEPOOL_ROW := `|**{PLACEMENT}**|{PRIZE}|{TEAM_NAME}|`
 	if includePoints {
 		PRIZEPOOL_HEADER = "|**Place**|**Prize**|**Team**|**RLCS Points**|\n|:-|:-|:-|:-|"
@@ -124,7 +133,12 @@ func markdownForTeamPrizes(teamPrizes []teamPrize) string {
 	}
 
 	var finalMarkdown strings.Builder
-	finalMarkdown.WriteString(PRIZEPOOL_HEADER)
+	if teamPrizes[0].usePlayerName{
+		finalMarkdown.WriteString(PRIZEPOOL_HEADER_PLAYER)
+	}else{
+		finalMarkdown.WriteString(PRIZEPOOL_HEADER)
+	}
+
 	for _, prize := range teamPrizes {
 		newRow := strings.ReplaceAll(PRIZEPOOL_ROW, "{PLACEMENT}", prize.placement)
 		newRow = strings.ReplaceAll(newRow, "{PRIZE}", prize.prize)
