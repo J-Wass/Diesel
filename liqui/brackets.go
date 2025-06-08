@@ -91,6 +91,10 @@ func matchesForLiquiURLWithDateNumber(liquipediaHTML *html.Node, dateNumber int)
 			teamNameElement := utils.Query(team, ".name")
 			if teamNameElement != nil && teamNameElement.FirstChild != nil {
 				teamName = teamNameElement.FirstChild.Data
+				// Handle teamname that are links. Name is only layer below anchor tag.
+				if teamName == "a"{
+					teamName = teamNameElement.FirstChild.FirstChild.Data
+				}
 			}
 
 			// Get team score, if it exists.

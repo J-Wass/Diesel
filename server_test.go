@@ -74,6 +74,17 @@ func TestBracket(t *testing.T) {
 	assert.Equal(t, expectedEncodedMarkup, string(responseData))
 }
 
+func TestBracket1v1Date(t *testing.T) {
+	url := "https://liquipedia.net/rocketleague/Rocket_League_Championship_Series/2025/1v1/Raleigh_Major/Middle_East_and_North_Africa"
+	encodedUrl := utils.EncodedBase64(url)
+	endpoint := fmt.Sprintf("/bracket/%s/date/7", encodedUrl)
+
+	responseData := responseForEndpoint(t, endpoint)
+
+	expectedEncodedMarkup := "fCpFTElNSU5BVElPTip8fFsqKkxpcXVpcGVkaWEgQnJhY2tldCoqXShodHRwczovL2xpcXVpcGVkaWEubmV0L3JvY2tldGxlYWd1ZS9Sb2NrZXRfTGVhZ3VlX0NoYW1waW9uc2hpcF9TZXJpZXMvMjAyNS8xdjEvUmFsZWlnaF9NYWpvci9NaWRkbGVfRWFzdF9hbmRfTm9ydGhfQWZyaWNhI1Jlc3VsdHMpfAp8Oi18Oi18Oi18CnxEcktub3dufCoqMiAtIDQqKnwqKktpaWxlZXJyeioqfAp8b3BzfCoqMyAtIDQqKnwqKk51c2gqKnwKfCoqTndwbyoqfCoqNCAtIDAqKnxLaWlsZWVycnp8CnwqKlJ3OSoqfCoqNCAtIDIqKnxOdXNofAp8Unc5fCoqMyAtIDQqKnwqKk53cG8qKnw="
+	assert.Equal(t, expectedEncodedMarkup, string(responseData))
+}
+
 func TestBracketWithDate(t *testing.T) {
 	url := "https://liquipedia.net/rocketleague/Rocket_League_Championship_Series/2025/Raleigh_Major/North_America/Open_6"
 	encodedUrl := utils.EncodedBase64(url)
