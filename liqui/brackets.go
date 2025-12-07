@@ -4,6 +4,7 @@ import (
 	"diesel/utils"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,7 +36,14 @@ func datetimeFromLiquiTimestring(timestring string, timezone string) time.Time {
 	if err != nil {
 		dateTime, err = gostradamus.Parse(timestring+timezone, "MMMM D, YYYY - HH:mmzz")
 		if err != nil {
-			return time.Now()
+			// Try date-only formats for brackets (e.g., "December 7, 2025")
+			dateTime, err = gostradamus.Parse(timestring, "MMMM D, YYYY")
+			if err != nil {
+				dateTime, err = gostradamus.Parse(timestring, "MMMM DD, YYYY")
+				if err != nil {
+					return time.Now()
+				}
+			}
 		}
 
 	}
@@ -53,6 +61,7 @@ func matchesForLiquiURLWithDateNumber(liquipediaHTML *html.Node, dateNumber int)
 	// List of each match in the bracket.
 	matches := make([]match, 0)
 	matchElements := utils.QueryAll(liquipediaHTML, ".brkts-round-center")
+
 	for _, matchElement := range matchElements {
 		// Check if match is finished yet.
 		timerElement := utils.Query(matchElement, ".timer-object")
@@ -60,19 +69,36 @@ func matchesForLiquiURLWithDateNumber(liquipediaHTML *html.Node, dateNumber int)
 			continue
 		}
 
-		// Get timezone info.
-		timerAbbreviation := utils.Query(timerElement, "abbr")
-		if timerAbbreviation == nil{
-			continue
+		// Try to get timestamp from data-timestamp attribute first (more reliable for brackets)
+		var gameStartTime time.Time
+		timestampStr := utils.AttrOr(timerElement, "data-timestamp", "")
+		if timestampStr != "" {
+			timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+			if err == nil {
+				gameStartTime = time.Unix(timestamp, 0).UTC()
+			}
 		}
-		timezone := utils.AttrOr(timerAbbreviation, "data-tz", "")
-		timezoneString := utils.Query(timerElement, "abbr").FirstChild.Data
 
-		// Get the timestring, convert to time.Time().
-		liquiTimestring := timerElement.FirstChild.Data
-		liquiTimestring = strings.ReplaceAll(liquiTimestring, timezoneString, "")
-		liquiTimestring = strings.TrimSpace(liquiTimestring)
-		gameStartTime := datetimeFromLiquiTimestring(liquiTimestring, timezone)
+		// Fallback to parsing timestring if timestamp not available
+		if gameStartTime.IsZero() {
+			// Get timezone info.
+			timerAbbreviation := utils.Query(timerElement, "abbr")
+			timezone := ""
+			timezoneString := ""
+
+			if timerAbbreviation != nil {
+				timezone = utils.AttrOr(timerAbbreviation, "data-tz", "")
+				if timerAbbreviation.FirstChild != nil {
+					timezoneString = timerAbbreviation.FirstChild.Data
+				}
+			}
+
+			// Get the timestring, convert to time.Time().
+			liquiTimestring := timerElement.FirstChild.Data
+			liquiTimestring = strings.ReplaceAll(liquiTimestring, timezoneString, "")
+			liquiTimestring = strings.TrimSpace(liquiTimestring)
+			gameStartTime = datetimeFromLiquiTimestring(liquiTimestring, timezone)
+		}
 
 		// This game is outside of the requested day, so ignore it.
 		if gameStartTime.Day() != dateNumber {
@@ -150,19 +176,36 @@ func matchesForLiquiURL(liquipediaHTML *html.Node, dayNumber int) []match {
 			continue
 		}
 
-		// Get timezone info.
-		timerAbbreviation := utils.Query(timerElement, "abbr")
-		if timerAbbreviation == nil{
-			continue
+		// Try to get timestamp from data-timestamp attribute first (more reliable for brackets)
+		var gameStartTime time.Time
+		timestampStr := utils.AttrOr(timerElement, "data-timestamp", "")
+		if timestampStr != "" {
+			timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+			if err == nil {
+				gameStartTime = time.Unix(timestamp, 0).UTC()
+			}
 		}
-		timezone := utils.AttrOr(timerAbbreviation, "data-tz", "")
-		timezoneString := utils.Query(timerElement, "abbr").FirstChild.Data
 
-		// Get the timestring, convert to time.Time().
-		liquiTimestring := timerElement.FirstChild.Data
-		liquiTimestring = strings.ReplaceAll(liquiTimestring, timezoneString, "")
-		liquiTimestring = strings.TrimSpace(liquiTimestring)
-		gameStartTime := datetimeFromLiquiTimestring(liquiTimestring, timezone)
+		// Fallback to parsing timestring if timestamp not available
+		if gameStartTime.IsZero() {
+			// Get timezone info.
+			timerAbbreviation := utils.Query(timerElement, "abbr")
+			timezone := ""
+			timezoneString := ""
+
+			if timerAbbreviation != nil {
+				timezone = utils.AttrOr(timerAbbreviation, "data-tz", "")
+				if timerAbbreviation.FirstChild != nil {
+					timezoneString = timerAbbreviation.FirstChild.Data
+				}
+			}
+
+			// Get the timestring, convert to time.Time().
+			liquiTimestring := timerElement.FirstChild.Data
+			liquiTimestring = strings.ReplaceAll(liquiTimestring, timezoneString, "")
+			liquiTimestring = strings.TrimSpace(liquiTimestring)
+			gameStartTime = datetimeFromLiquiTimestring(liquiTimestring, timezone)
+		}
 
 		// Determine if this game start time is within the requested day.
 		if dayNumber > len(dayBuckets) {
